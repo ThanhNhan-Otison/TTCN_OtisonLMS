@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>OtisonLMS - Thống kê khóa học</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/css/app.css" rel="stylesheet">
+  <link href="assets/css/stats.css" rel="stylesheet">
+  <link  href="assets/css/footer.css" rel="stylesheet">
+</head>
+<body>
+
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/nav.js"></script>
+<script>requireAuth();</script>
+
+<div id="appNav"></div>
+
+<div class="bg-light border-bottom">
+  <div class="container py-2 d-flex flex-wrap gap-2 justify-content-end">
+    <a class="btn btn-outline-primary btn-sm" href="dashboard.html">Dashboard</a>
+    <a class="btn btn-outline-primary btn-sm" href="courses.html">Khóa học</a>
+    <a class="btn btn-outline-primary btn-sm" href="assignments.html">Bài tập</a>
+    <a class="btn btn-outline-primary btn-sm" href="submissions.html">Bài nộp</a>
+    <button class="btn btn-outline-danger btn-sm" id="logout">Logout</button>
+  </div>
+</div>
+
+<div class="container py-4">
+  <div class="stats-hero mb-4">
+    <div class="d-flex flex-wrap align-items-center gap-3">
+      <div class="me-auto">
+        <p class="text-uppercase small mb-1 opacity-75">Thống kê khóa học</p>
+        <h3 class="h2 mb-0" id="courseTitle">Đang tải...</h3>
+        <p class="mb-0 opacity-75" id="courseSubtitle">Tổng quan lượt tham gia và chất lượng bài nộp.</p>
+      </div>
+      <div class="d-flex flex-column align-items-end gap-2">
+        <span class="badge text-bg-light text-primary" id="courseCode">#—</span>
+        <span class="badge text-bg-dark" id="roleBadge">Đang xác định</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-soft p-4 mb-4" id="studentStats" style="display:none;">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="mb-0">Tổng quan dành cho học viên</h5>
+      <span class="badge text-bg-primary" id="studentStatus">Đang xử lý...</span>
+    </div>
+    <p class="text-muted small mb-3">Số liệu giúp bạn biết lớp của mình đang học đến đâu và mức độ nộp bài so với toàn bộ học viên.</p>
+    <div class="progress" style="height:12px;">
+      <div class="progress-bar bg-success" id="studentProgressBar" role="progressbar" style="width:0%;">0%</div>
+    </div>
+    <div class="small text-muted mt-2" id="studentProgressLabel">Chưa có dữ liệu.</div>
+    <ul class="list-group list-group-flush mt-3" id="studentList">
+      <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+        <span>Bài tập trong khóa</span>
+        <strong id="studentAssignments">—</strong>
+      </li>
+      <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+        <span>Bài nộp toàn lớp</span>
+        <strong id="studentSubmissions">—</strong>
+      </li>
+      <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+        <span>Điểm trung bình lớp</span>
+        <strong id="studentAverage">—</strong>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card shadow-soft p-4" id="teacherStats">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0">Số liệu 24h gần nhất</h5>
+      <span class="badge text-bg-secondary" id="statsStatus">Đang tải...</span>
+    </div>
+
+    <table class="table table-borderless mb-0 stats-table">
+      <tbody>
+        <tr>
+          <th>Tổng học viên</th>
+          <td class="fw-semibold" id="students">—</td>
+        </tr>
+        <tr>
+          <th>Tổng bài học</th>
+          <td class="fw-semibold" id="lessons">—</td>
+        </tr>
+        <tr>
+          <th>Tổng bài tập</th>
+          <td class="fw-semibold" id="assign">—</td>
+        </tr>
+        <tr>
+          <th>Tổng bài nộp</th>
+          <td class="fw-semibold" id="submit">—</td>
+        </tr>
+        <tr>
+          <th>Điểm trung bình</th>
+          <td class="fw-semibold" id="avg">—</td>
+        </tr>
+        <tr>
+          <th>Tỉ lệ học viên đã nộp</th>
+          <td class="fw-semibold" id="rate">—</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="text-muted mt-3" id="statsMessage">Vui lòng chọn khóa học để xem thống kê.</p>
+  </div>
+
+  <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:1055;"></div>
+
+ </div>
+
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/stats.js"></script>
+  <div id="appFooter"></div>
+    <script src="assets/js/footer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const navAuthBtn = document.getElementById("navAuthBtn");
+  if (navAuthBtn) {
+    const isValidAuth = (val) => {
+      if (!val) return false;
+      if (typeof val !== "string") return false;
+      if (val.trim() === "" || val === "null" || val === "undefined") return false;
+      return true;
+    };
+    const syncNavAuthBtn = ()=>{
+      const authed = isValidAuth(localStorage.getItem("auth"));
+      if (authed) {
+        navAuthBtn.textContent = "Đăng xuất";
+        navAuthBtn.classList.remove("btn-primary");
+        navAuthBtn.classList.add("btn-outline-danger");
+      } else {
+        navAuthBtn.textContent = "Đăng nhập";
+        navAuthBtn.classList.remove("btn-outline-danger");
+        navAuthBtn.classList.add("btn-primary");
+      }
+    };
+    syncNavAuthBtn();
+    navAuthBtn.onclick = ()=>{
+      if (isValidAuth(localStorage.getItem("auth"))) {
+        if (typeof clearAuth === "function") clearAuth();
+        syncNavAuthBtn();
+        window.location.href = "login.html";
+      } else {
+        window.location.href = "login.html";
+      }
+    };
+  }
+});
+</script>
+</body>
+</html>

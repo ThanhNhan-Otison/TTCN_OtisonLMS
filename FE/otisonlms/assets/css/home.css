@@ -1,0 +1,203 @@
+/* Giảm khoảng trắng trên/dưới navbar */
+.navbar {
+  padding-top: 0 !important;
+  padding-bottom: 0.3rem !important;
+}
+/* body{ background:var(--surface); color:var(--text); padding-bottom: 0 !important; margin-bottom: 0 !important; } */
+body{
+  margin: 0 !important;
+  padding: 0 !important;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.topbar{
+  height:18px;
+  border-bottom:1px solid var(--border-light);
+  background:var(--surface);
+}
+
+.brand-title{
+  font-weight:800;
+  letter-spacing:.3px;
+  font-size:28px;
+  line-height:1.1;
+  margin:0;
+  color:#2b2f8a;
+}
+
+nav .navbar-brand img{
+  border-radius:20px;
+  box-shadow:0 8px 20px rgba(0,0,0,.15);
+}
+
+.nav-link{
+  color:var(--text);
+  font-weight:600;
+}
+.nav-link.active{
+  color:var(--brand)!important;
+  position:relative;
+}
+.nav-link.active::after{
+  content:"";
+  position:absolute;
+  left:0; right:0;
+  height:3px;
+  bottom:-10px;
+  background:var(--brand);
+  border-radius:3px;
+}
+
+.hero{
+  position:relative;
+
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.25)),
+    url("../img/bg2.jpg") center/cover no-repeat;
+    /* hero.jpg */
+  display:flex;
+  align-items:center;
+  
+   min-height: calc(100vh - 160px);
+  padding: 40px 0;     /* giảm padding */
+}
+.hero-title{
+  text-align:center;
+  width:100%;
+  color:var(--on-primary);
+  font-weight:800;
+  font-size:56px;
+  text-shadow:0 10px 25px rgba(0,0,0,.25);
+  margin-bottom:18px;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.course-strip{
+  position:absolute;
+  left:0; right:0;
+  bottom:90px;
+  padding:0 12px;
+  
+}
+
+
+
+.course-card{
+  background:var(--surface);
+  border-radius:8px;
+  /* border:1px solid rgba(0,0,0,.06); */
+  border:3px solid rgba(255,255,255,.9); /* viền trắng */
+  box-shadow:0 14px 40px rgba(0,0,0,.10);
+  padding:22px 22px 18px;
+  height:100%;
+}
+.course-code{
+  font-weight:700;
+  font-size:16px;
+  line-height:1.25;
+  text-transform:uppercase;
+  margin-bottom:14px;
+  color:#ffffff; /* chữ trắng */
+}
+.btn-pill{
+  border-radius:999px;
+  padding:8px 18px;
+  font-weight:700;
+  letter-spacing:.2px;
+  font-size:13px;
+  color:#ffffff !important; /* chữ trắng */
+}
+
+.btn-course-blue{
+  background:var(--brand);
+  border-color:var(--brand);
+  color:var(--on-primary);
+
+}
+.btn-course-orange{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:var(--on-primary);
+}
+
+.all-courses-wrap{
+  position:absolute;
+  left:0; right:0;
+  bottom:30px;
+  display:flex;
+  justify-content:center;
+  gap:14px;
+  flex-wrap:wrap;
+}
+.all-courses-btn{
+  background:var(--surface);
+  border:1px solid rgba(0,0,0,.12);
+  border-radius:999px;
+  padding:10px 18px;
+  font-weight:700;
+  box-shadow:0 10px 25px rgba(0,0,0,.10);
+  text-decoration:none;
+  color:var(--text);
+  border:2px solid #ffffff !important; /* viền trắng */
+  color:#ffffff !important;
+}
+.all-courses-btn.stats-btn{
+  background:var(--brand);
+  /* border-color:var(--brand);
+  color:var(--on-primary); */
+  border:2px solid #ffffff !important;
+  color:#ffffff !important;
+}
+.btn-course-blue:hover,
+.btn-course-orange:hover,
+.all-courses-btn:hover{
+  background:#ffffff !important;
+  color:#000000 !important;
+}
+
+
+.left-tool{
+  position:fixed;
+  left:0;
+  top:240px;
+  width:44px;
+  height:44px;
+  background:var(--ink);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--on-primary);
+  border-radius:0 6px 6px 0;
+  z-index:999;
+  opacity:.92;
+}
+
+
+
+
+@media (max-width: 992px){
+  .hero-title{ font-size:40px; }
+  .course-strip{ position:static; padding-top:22px; }
+  .hero{ padding-bottom:0; }
+  .all-courses-wrap{ position:static; padding:20px 0 10px; }
+}
+
+.page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+
+
+
+.page-wrapper{
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+
+#dashboardBtn { display: flex; align-items: center; justify-content: center; }
+#registerBtn { display: flex; align-items: center; justify-content: center; }

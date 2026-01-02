@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>OtisonLMS - Upload video</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/css/app.css" rel="stylesheet">
+  <link  href="assets/css/footer.css" rel="stylesheet">
+</head>
+<body>
+
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/nav.js"></script>
+<script>requireAuth();</script>
+
+<div id="appNav"></div>
+
+<div class="container py-4">
+  <div class="card shadow-soft p-4">
+    <h4 class="mb-2">Upload video</h4>
+    <div class="small-muted mb-3">POST /api/v1/upload/video (form-data: key = <b>file</b>)</div>
+
+    <input id="file" type="file" class="form-control" accept="video/*">
+    <button id="btnUpload" class="btn btn-primary mt-3">Upload</button>
+
+    <div class="mt-4">
+      <label class="form-label">Video URL trả về (dán vào videoUrl của Lesson)</label>
+      <input id="out" class="form-control" readonly>
+      <div class="small-muted mt-2">Ví dụ: <code>/videos/xxx.mp4</code></div>
+    </div>
+  </div>
+
+  <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:1055;"></div>
+</div>
+
+<script src="assets/js/ui.js"></script>
+<script>
+document.getElementById("btnUpload").onclick = async ()=>{
+  const f = document.getElementById("file").files[0];
+  if(!f) return toast("Chọn video trước", "warning");
+
+  const fd = new FormData();
+  fd.append("file", f);
+
+  try {
+    const res = await fetch(`${API_BASE}/upload/video`, {
+      method: "POST",
+      headers: { ...getAuthHeader() }, // KHÔNG set Content-Type, browser tự set boundary
+      body: fd
+    });
+
+    const textOrJson = await (res.headers.get("content-type")||"").includes("application/json")
+      ? res.json()
+      : res.text();
+
+    if(!res.ok) throw new Error(typeof textOrJson === "string" ? textOrJson : JSON.stringify(textOrJson));
+
+    const url = typeof textOrJson === "string" ? textOrJson : (textOrJson.url || textOrJson.path || "");
+    document.getElementById("out").value = url;
+    toast("Upload thành công!", "success");
+  } catch (e) {
+    toast("Upload thất bại: " + e.message, "danger");
+  }
+};
+document.getElementById("logout").onclick = ()=>{ clearAuth(); location.href="login.html"; };
+
+</script>
+  <div id="appFooter"></div>
+    <script src="assets/js/footer.js"></script>
+</body>
+</html>

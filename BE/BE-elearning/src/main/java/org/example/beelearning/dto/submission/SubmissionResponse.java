@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 public class SubmissionResponse {
     private Integer submissionId;
-    private Integer assigmentId;
+    private Integer assignmentId;
     private Integer studentId;
     private String content;
     private String fileUrl;
@@ -25,7 +25,7 @@ public class SubmissionResponse {
 
         return SubmissionResponse.builder()
                 .submissionId(s.getSubmissionId())
-                .assigmentId(s.getAssignmentId() != null ? s.getAssignmentId().getAssignmentId() : null)
+                .assignmentId(s.getAssignmentId() != null ? s.getAssignmentId().getAssignmentId() : null)
                 .studentId(s.getStudentId() != null ? s.getStudentId().getUserId() : null) // nếu User PK là userId thì đổi getId() -> getUserId()
                 .content(s.getContent())
                 .fileUrl(s.getFileUrl())

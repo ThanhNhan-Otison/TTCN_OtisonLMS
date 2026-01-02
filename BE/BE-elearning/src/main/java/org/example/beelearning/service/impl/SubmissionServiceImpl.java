@@ -32,47 +32,6 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final FileStrorageService fileStrorageService;
 
 
-//    @Override
-//    public SubmissionResponse submitAssignment(SubmissionRequest req) {
-//
-//        // Lấy user hiện tại = student
-//        var auth = SecurityContextHolder.getContext().getAuthentication();
-//        var principal = (CustomUserDetails) auth.getPrincipal();
-//        var currentUser = principal.getUser();
-//
-//        if (currentUser.getRole() != Role.USER) {
-//            throw new BusinessException("Chỉ sinh viên mới được nộp bài");
-//        }
-//
-//        Assignment assignment = assignmentRepository.findById(req.getAssigmentId())
-//                .orElseThrow(() -> new BusinessException("Không tìm thấy bài tập"));
-//
-//        // Check student đã đăng ký khóa học chứa lesson này chưa
-//        Integer courseId = assignment.getLessonId().getCourse().getCourseId();
-//        boolean enrolled = enrollmentRepository
-//                .existsByStudent_UserIdAndCourse_CourseId(currentUser.getUserId(), courseId);
-//
-//        if (!enrolled) {
-//            throw new BusinessException("Bạn chưa đăng ký khóa học, không được nộp bài");
-//        }
-//
-//        // Nếu muốn cho phép nộp lại → tìm Submission cũ (nếu có) rồi update
-//        Submission submission = submissionRepository
-//                .findByAssignmentIdAndStudentId(assignment.getAssignmentId(), currentUser.getUserId())
-//                .orElse(Submission.builder()
-//                        .assignmentId(assignment)
-//                        .studentId(currentUser)
-//                        .build()
-//                );
-//
-//        submission.setContent(req.getContent());
-//        submission.setFileUrl(req.getFileUrl());
-//        submission.setSubmittedAt(LocalDateTime.now());
-//
-//        submissionRepository.save(submission);
-//        return toResponse(submission);
-//    }
-
 
     @Override
     public SubmissionResponse submit(Integer assignmentId, String content, MultipartFile file) {
@@ -146,7 +105,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     private SubmissionResponse toResponse(Submission s) {
         return SubmissionResponse.builder()
                 .submissionId(s.getSubmissionId())
-                .assigmentId(s.getAssignmentId().getAssignmentId())
+                .assignmentId(s.getAssignmentId().getAssignmentId())
                 .studentId(s.getStudentId().getUserId())
                 .content(s.getContent())
                 .fileUrl(s.getFileUrl())

@@ -1,10 +1,13 @@
 package org.example.beelearning.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.beelearning.dto.assignment.AssignmentReqest;
+import org.example.beelearning.dto.assignment.AssignmentResponse;
 import org.example.beelearning.dto.course.CourseRequest;
 import org.example.beelearning.dto.course.CourseResponse;
 import org.example.beelearning.repository.CourseRepository;
 import org.example.beelearning.service.CourseService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +45,7 @@ public class CourseController {
 
         return courseService.getPublishedCourses(); // USER / TEACHER
     }
+
 
 
     // LẤY KHÓA HỌC THEO GIẢNG VIÊN – GET /api/v1/courses/teacher/{teacherId}

@@ -43,4 +43,10 @@ public class AssignmentController {
     public AssignmentResponse getById(@PathVariable Integer id) {
         return assignmentService.getAssignmentById(id);
     }
+    @PreAuthorize("hasAnyRole('TEACHER')")
+    @PutMapping("/{id}")
+    public AssignmentResponse updateAssignment(@PathVariable Integer id,
+                                               @RequestBody AssignmentReqest req) {
+        return assignmentService.updateAssignment(id, req);
+    }
 }

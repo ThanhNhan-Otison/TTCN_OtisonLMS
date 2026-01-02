@@ -48,6 +48,31 @@ public class AssignmentServiceImpl implements AssignmentService {
         return toResponse(a);
     }
 
+    public AssignmentResponse updateAssignment(Integer assignmentId, AssignmentReqest req) {
+
+        Assignment a = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy bài tập"));
+
+        // ✅ KHÔNG đổi lesson khi update (đúng yêu cầu)
+        // Nếu bạn muốn chặn luôn trường hợp FE gửi lessonId khác:
+        if (req.getLessonId() != null) {
+            Integer currentLessonId = (a.getLessonId() != null) ? a.getLessonId().getLessonId() : null;
+            if (currentLessonId != null && !currentLessonId.equals(req.getLessonId())) {
+                throw new BusinessException("Không được thay đổi bài học của bài tập khi cập nhật");
+            }
+        }
+
+        // ✅ update field được phép
+        if (req.getTitle() != null) a.setTitle(req.getTitle());
+        if (req.getDescription() != null) a.setDescription(req.getDescription());
+        if (req.getDeadline() != null) a.setDeadline(req.getDeadline());
+        if (req.getMaxScore() != null) a.setMaxScore(req.getMaxScore());
+
+        assignmentRepository.save(a);
+        return toResponse(a);
+    }
+
+
     @Override
     public List<AssignmentResponse> getAssignmentsBylessonId(Integer lessonId) {
         Lesson lesson = lessonRepository.findById(lessonId)

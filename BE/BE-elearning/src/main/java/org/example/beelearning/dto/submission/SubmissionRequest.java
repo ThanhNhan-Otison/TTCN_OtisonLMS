@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SubmissionRequest {
-    private Integer assigmentId;
+    private Integer assignmentId;
     private String content;
     private String fileUrl;
 }

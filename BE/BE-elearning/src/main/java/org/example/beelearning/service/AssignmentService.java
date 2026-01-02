@@ -13,4 +13,5 @@ public interface AssignmentService {
     List<AssignmentResponse> getAllAssignments();
 
     AssignmentResponse getAssignmentById(Integer id);
+    AssignmentResponse updateAssignment(Integer assignmentId, AssignmentReqest req);
 }

@@ -1,6 +1,4 @@
 // assets/js/submissions.js
-// All logic from submissions.html inline script, wrapped in DOMContentLoaded
-
 document.addEventListener('DOMContentLoaded', function() {
   const assignmentId = qs("assignmentId");
 

@@ -19,26 +19,60 @@
   <script>requireAuth();</script>
 
   <div id="appNav"></div>
+  <!-- ✅ Thể hiện thông tin bài tập -->
+  <div class="container py-4">
+    <div class="card shadow-soft p-4 mb-3" id="infoBox" style="display:none;">
+      <h4 id="aTitle" class="mb-2">...</h4>
+      <div class="small-muted mb-2">
+        Hạn nộp: <span id="aDue">-</span> • Điểm tối đa: <span id="aMax">-</span>
+      </div>
+      <div id="aDesc" class="mt-2"></div>
+      <div class="small-muted mt-2">
+        Khóa học: <span id="aCourse">-</span> • Bài học: <span id="aLesson">-</span>
+      </div>
+    </div>
 
- <div class="card shadow-soft p-4" id="createBox" style="display:none;">
-  <h5>Tạo/Sửa bài tập (Teacher/Admin)</h5>
+    <!-- ✅ Nộp bài tập (USER) -->
+    <div class="card shadow-soft p-4 mb-3" id="submitBox" style="display:none;">
+      <h5 class="mb-2">Nộp bài</h5>
+      <div class="small-muted">Bạn có thể nộp link/nội dung hoặc file.</div>
 
-  <input id="cTitle" class="form-control mt-2" placeholder="Tiêu đề">
+      <input id="answer" class="form-control mt-2" placeholder="Link bài làm / nội dung...">
+      <input id="file" type="file" class="form-control mt-2">
 
-  <textarea id="cDesc" class="form-control mt-2" rows="3" placeholder="Mô tả"></textarea>
+      <button id="btnSubmit" class="btn btn-primary mt-3 w-100">Nộp bài</button>
+    </div>
 
-  <input id="cDue" type="date" class="form-control mt-2">
+    <!-- ✅ Box Teacher/Admin (bạn đang có) -->
+    <div class="card shadow-soft p-4" id="createBox" style="display:none;">
+      <h5>Tạo/Sửa bài tập (Teacher/Admin)</h5>
 
-  <!-- ✅ Điểm tối đa -->
-  <input id="cMaxScore" type="number" min="0" class="form-control mt-2" placeholder="Điểm tối đa">
+      <input id="cTitle" class="form-control mt-2" placeholder="Tiêu đề">
 
-  <!-- ✅ Chọn khóa học: hiển thị tên khóa học từ CSDL -->
-  <select id="cCourseId" class="form-select mt-2">
-    <option value="">-- Chọn khóa học --</option>
-  </select>
+      <textarea id="cDesc" class="form-control mt-2" rows="3" placeholder="Mô tả"></textarea>
 
-  <button id="btnCreate" class="btn btn-success mt-3 w-100">Lưu</button>
-</div>
+      <input id="cDue" type="date" class="form-control mt-2">
+
+      <!-- ✅ Điểm tối đa -->
+      <input id="cMaxScore" type="number" min="0" class="form-control mt-2" placeholder="Điểm tối đa">
+
+      <!-- ✅ Chọn khóa học -->
+      <select id="cCourseId" class="form-select mt-2">
+        <option value="">-- Chọn khóa học --</option>
+      </select>
+
+      <!-- ✅ Chọn bài học (lấy theo khóa học) -->
+      <select id="cLessonId" class="form-select mt-2" disabled>
+        <option value="">-- Chọn bài học --</option>
+      </select>
+
+
+      <button id="btnCreate" class="btn btn-success mt-3 w-100">Lưu</button>
+    </div>
+  </div>
+
+
+
 
   <div id="appFooter"></div>
   <script src="assets/js/footer.js"></script>

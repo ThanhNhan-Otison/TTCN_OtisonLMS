@@ -100,7 +100,8 @@ public class SecurityConfig {
                                 "/api/v1/auth/register",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/videos/**"
+                                "/videos/**",
+                                "/submissions/**"
                         ).permitAll()
 
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -132,6 +133,10 @@ public class SecurityConfig {
                         // GET thì cho ai cũng xem
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/**", "/api/v1/lessons/**")
                         .permitAll()
+
+                        .requestMatchers(
+                                "/api/v1/submissions/**"
+                        ).authenticated()
 
                         // còn lại: phải đăng nhập
                         .anyRequest().authenticated()

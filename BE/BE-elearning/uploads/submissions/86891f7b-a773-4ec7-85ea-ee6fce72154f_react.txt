@@ -1,0 +1,31 @@
+react
+npx create-react-app . 
+//tạo proj react trong thư mục hiện tại = "."
+npm start 
+npm run build 
+phím tắt rfc 
+component atlassion 
+<>
+</>
+---fractment--
+npm install --save styled-components
+------------------------------
+khởi động,tạo,......
+sudo docker run -it ubuntu bash
+
+sudo docker ps
+sudo docker ps -a 
+sudo docker ps -l 
+ 
+cat lsb-release 
+sudo docker run  -it fedora bash 
+-----------------
+ hub.docker.com
+node
+--------------
+docker file, lien ket cac container 
+-------
+3 tuan cuoi 
+---------
+lam docker file, git 
+-> nop file 

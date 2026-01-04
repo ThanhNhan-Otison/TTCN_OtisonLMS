@@ -12,3 +12,4 @@ public class SubmissionStatsResponse {
     private long totalSubmissions;     // tổng lượt nộp
     private long totalStudentsSubmitted; // số sinh viên distinct đã nộp
 }
+

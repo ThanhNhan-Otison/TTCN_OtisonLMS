@@ -1,4 +1,5 @@
 
+
 // lưu JWT
 function setJwtToken(token) {
   localStorage.setItem("token", token);
@@ -59,11 +60,16 @@ async function requireTeacherOrAdmin(redirectTo = "home.html") {
 
 // ================= USER INFO =================
 
+
 // gọi BE lấy user hiện tại
 async function tryLoadMe() {
   try {
     const me = await apiFetch("/auth/me");
     if (!me) return null;
+
+    // ✅ lưu userId để FE dùng (ẩn/hiện nút Xóa theo owner)
+    const uid = me.userId ?? me.id;
+    if (uid != null) localStorage.setItem("userId", String(uid));
 
     const role = me.role ? String(me.role).toUpperCase() : "";
     if (role) localStorage.setItem("role", role);
@@ -72,11 +78,11 @@ async function tryLoadMe() {
     localStorage.setItem(
       "userInfo",
       JSON.stringify({
-        id: me.userId ?? me.id,
+        id: uid,
         email: me.email,
-        fullName: me.firstName ?? "",
+        fullName: me.firstName ?? me.ten ?? "",
         role,
-        status: me.status,
+        status: me.status ?? me.trangThai,
       })
     );
 
@@ -84,11 +90,12 @@ async function tryLoadMe() {
   } catch (e) {
     // token hết hạn / sai
     if (String(e.message || "").includes("401")) {
-      clearAuth();
+      if (typeof clearAuth === "function") clearAuth();
     }
     return null;
   }
 }
+
 
 // ================= LOGIN =================
 async function loginJwt(email, password) {

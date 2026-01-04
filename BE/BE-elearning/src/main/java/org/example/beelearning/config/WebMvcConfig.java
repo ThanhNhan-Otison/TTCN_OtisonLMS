@@ -15,5 +15,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
         // Map URL /videos/** đến thư mục thật trên ổ đĩa
         registry.addResourceHandler("/videos/**")
                 .addResourceLocations("file:C:/Document/TTCN/BE/BE-elearning/uploads/videos/");
+
+        registry.addResourceHandler("/submissions/**")
+                .addResourceLocations("file:C:/Document/TTCN/BE/BE-elearning/uploads/submissions/");
     }
 }

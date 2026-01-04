@@ -43,8 +43,8 @@ public class FileStrorageService {
         // Cho phép các định dạng bài nộp phổ biến (bạn có thể chỉnh)
         if (!(lower.endsWith(".pdf") || lower.endsWith(".doc") || lower.endsWith(".docx")
                 || lower.endsWith(".zip") || lower.endsWith(".rar")
-                || lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg"))) {
-            throw new RuntimeException("File nộp chỉ hỗ trợ: pdf, doc, docx, zip, rar, png, jpg, jpeg");
+                || lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg")|| lower.endsWith(".txt"))) {
+            throw new RuntimeException("File nộp chỉ hỗ trợ: pdf, doc, docx, zip, rar, png, jpg, jpeg, txt");
         }
 
         File folder = new File(submissionPath);

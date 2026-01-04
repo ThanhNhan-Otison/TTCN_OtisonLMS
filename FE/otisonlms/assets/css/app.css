@@ -30,6 +30,27 @@ html, body {
   display: flex;
   flex-direction: column;
 }
+/* Tabs dashboard: chữ đen khi active */
+#courseTabs .nav-link {
+  color: #000;              /* chữ đen khi chưa active */
+}
+
+#courseTabs .nav-link.active {
+  color: #000 !important;   /* chữ đen khi active */
+  background-color: #e9ecef !important; /* nền xám nhạt (tuỳ chọn) */
+  border-color: #dee2e6;
+}
+
+/* Tabs dashboard: chữ đen khi active */
+#userTabs .nav-link {
+  color: #000;              /* chữ đen khi chưa active */
+}
+
+#userTabs .nav-link.active {
+  color: #000 !important;   /* chữ đen khi active */
+  background-color: #e9ecef !important; /* nền xám nhạt (tuỳ chọn) */
+  border-color: #dee2e6;
+}
 
 
 body{ background:var(--surface-alt); color:var(--text); }

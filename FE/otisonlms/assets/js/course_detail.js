@@ -26,12 +26,12 @@ function updateEnrollUI({ enrolled }) {
   if (btnEnroll) btnEnroll.style.display = "none";
   if (btnUpload) btnUpload.style.display = "none";
 
-  if (isTeacher()) {
-    badge.className = "badge text-bg-info";
-    badge.innerText = "Giảng viên ";
-    if (btnUpload) btnUpload.style.display = "";
-    return;
-  }
+  // if (isTeacher()) {
+  //   badge.className = "badge text-bg-info";
+  //   badge.innerText = "Giảng viên ";
+  //   if (btnUpload) btnUpload.style.display = "";
+  //   return;
+  // }
 
   if (isAdmin()) {
     badge.className = "badge text-bg-info";
@@ -54,21 +54,35 @@ function updateEnrollUI({ enrolled }) {
 
 
 
+// function updateUploadUI(courseId) {
+//   const btnGoUpload = document.getElementById("btnGoUpload");
+//   if (!btnGoUpload) return;
+
+//   btnGoUpload.style.display = "none";
+
+//   if (isTeacher()) {
+//     btnGoUpload.style.display = "";
+//     btnGoUpload.href = `upload.html?courseId=${encodeURIComponent(courseId)}`;
+//   }
+//   if (isAdmin()) {
+//     btnGoUpload.style.display = "";
+//     btnGoUpload.href = `upload.html?courseId=${encodeURIComponent(courseId)}`;
+//   }
+// }
 function updateUploadUI(courseId) {
-  const btnGoUpload = document.getElementById("btnGoUpload");
-  if (!btnGoUpload) return;
+  const uploadBtn = document.getElementById("uploadBtn");
+  if (!uploadBtn) return;
 
-  btnGoUpload.style.display = "none";
+  // mặc định ẩn hết
+  uploadBtn.style.display = "none";
 
-  if (isTeacher()) {
-    btnGoUpload.style.display = "";
-    btnGoUpload.href = `upload.html?courseId=${encodeURIComponent(courseId)}`;
-  }
-   if (isAdmin()) {
-    btnGoUpload.style.display = "";
-    btnGoUpload.href = `upload.html?courseId=${encodeURIComponent(courseId)}`;
+  // chỉ TEACHER hoặc ADMIN mới hiện
+  if (isTeacher() || isAdmin()) {
+    uploadBtn.style.display = "";
+    uploadBtn.href = `upload.html?courseId=${encodeURIComponent(courseId)}`;
   }
 }
+
 
 // ===== Data =====
 async function loadCourse(courseId) {
@@ -123,15 +137,67 @@ async function checkEnroll(courseId) {
 }
 
 // ===== Main =====
+// document.addEventListener("DOMContentLoaded", async () => {
+//   const courseId = qs("id");
+
+//   await loadCourse(courseId);
+//   await loadLessons(courseId);
+
+//   updateUploadUI(courseId);
+//   await checkEnroll(courseId);
+
+//   const btnEnroll = document.getElementById("btnEnroll");
+//   if (btnEnroll) {
+//     btnEnroll.onclick = async () => {
+//       try {
+//         await apiFetch("/enrollments", {
+//           method: "POST",
+//           json: { courseId: Number(courseId) },
+//         });
+//         toast("Đăng ký thành công", "success");
+//         await checkEnroll(courseId);
+//       } catch (e) {
+//         toast("Đăng ký thất bại: " + e.message, "danger");
+//       }
+//     };
+//   }
+
+//   const handleLogout = () => {
+//     clearAuth();
+//     location.href = "login.html";
+//   };
+//   document.getElementById("logout")?.addEventListener("click", handleLogout);
+//   document.getElementById("navLogout")?.addEventListener("click", handleLogout);
+// });
 document.addEventListener("DOMContentLoaded", async () => {
   const courseId = qs("id");
 
+  // đảm bảo role/userInfo đã có
+  if (typeof tryLoadMe === "function") await tryLoadMe();
+
   await loadCourse(courseId);
-  await loadLessons(courseId);
 
+  // cập nhật UI upload theo role (ẩn/hiện)
   updateUploadUI(courseId);
-  await checkEnroll(courseId);
 
+  // USER: phải check enroll trước
+  let enrolled = false;
+  if (isUserRole()) {
+    enrolled = await checkEnroll(courseId);
+
+    if (enrolled) {
+      await loadLessons(courseId);
+    } else {
+      // chưa đăng ký: không gọi lessons (tránh 403)
+      const ul = document.getElementById("lessonList");
+      if (ul) ul.innerHTML = `<li class="list-group-item">Bạn cần đăng ký để xem danh sách bài học.</li>`;
+    }
+  } else {
+    // TEACHER/ADMIN: load luôn
+    await loadLessons(courseId);
+  }
+
+  // nút đăng ký
   const btnEnroll = document.getElementById("btnEnroll");
   if (btnEnroll) {
     btnEnroll.onclick = async () => {
@@ -141,13 +207,18 @@ document.addEventListener("DOMContentLoaded", async () => {
           json: { courseId: Number(courseId) },
         });
         toast("Đăng ký thành công", "success");
-        await checkEnroll(courseId);
+
+        // sau khi đăng ký xong -> check lại -> load lessons
+        const ok = await checkEnroll(courseId);
+        if (ok) await loadLessons(courseId);
+
       } catch (e) {
         toast("Đăng ký thất bại: " + e.message, "danger");
       }
     };
   }
 
+  // logout
   const handleLogout = () => {
     clearAuth();
     location.href = "login.html";

@@ -1,6 +1,6 @@
 // assets/js/connect_anon.js
 // Backend version: create/list/delete via API
-// - Auto-expire 30 days: handled by backend (expiresAt + cleanup)
+// - Auto-expire 30 days: handled by backend
 // - Owner-only delete: enforced by backend (deleteMine checks owner)
 // - FE: only show delete button for owner
 
@@ -21,7 +21,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const filterCourse = document.getElementById("anonFilterCourse");
 
   // ======= STATE =======
-  let allConnections = []; // from backend
+  let allConnections = [];      // from backend
+  let currentUserId = 0;        // ✅ will be loaded once before render
 
   // ======= HELPERS =======
   function setStatus(msg) {
@@ -37,6 +38,36 @@ document.addEventListener("DOMContentLoaded", function () {
       .replaceAll("'", "&#039;");
   }
 
+  // ✅ lấy userId theo thứ tự: userId -> userInfo.id -> /auth/me
+  async function ensureCurrentUserId() {
+    // 1) direct key
+    const v = Number(localStorage.getItem("userId") || 0);
+    if (v) return v;
+
+    // 2) from userInfo
+    try {
+      const userInfoRaw = localStorage.getItem("userInfo");
+      if (userInfoRaw) {
+        const ui = JSON.parse(userInfoRaw);
+        const id = Number(ui?.id || ui?.userId || 0);
+        if (id) {
+          localStorage.setItem("userId", String(id));
+          return id;
+        }
+      }
+    } catch (_) {}
+
+    // 3) call /auth/me
+    try {
+      const me = await apiFetch("/auth/me");
+      const id = Number(me?.userId ?? me?.id ?? 0);
+      if (id) localStorage.setItem("userId", String(id));
+      return id || 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
   // ======= LOAD COURSES -> left dropdown =======
   async function loadCourses() {
     if (!courseInput) return;
@@ -46,7 +77,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const optionsHtml = (courses || [])
         .map((c) => {
-          // BE của bạn thường trả: courseId + name
           const id = c.courseId ?? c.id ?? c.course_id;
           const name = c.name ?? c.courseName ?? c.ten ?? "";
           if (!id || !name) return "";
@@ -55,9 +85,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .filter(Boolean)
         .join("");
 
-      courseInput.innerHTML =
-        '<option value="">Chọn khóa học</option>' + optionsHtml;
-
+      courseInput.innerHTML = '<option value="">Chọn khóa học</option>' + optionsHtml;
     } catch (e) {
       courseInput.innerHTML = '<option value="">Không tải được khóa học</option>';
       console.error(e);
@@ -81,11 +109,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!filterCourse) return;
 
     const options = [
-      ...new Set(
-        (data || [])
-          .map((i) => (i.courseName || "").trim())
-          .filter(Boolean)
-      ),
+      ...new Set((data || []).map((i) => (i.courseName || "").trim()).filter(Boolean)),
     ];
 
     const newKey = options.slice().sort().join("|");
@@ -96,9 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     filterCourse.innerHTML =
       `<option value="">Tất cả khóa học</option>` +
-      options
-        .map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`)
-        .join("");
+      options.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
 
     filterCourse.value = options.includes(current) ? current : "";
   }
@@ -118,7 +140,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // ======= RENDER =======
   function render() {
     buildCourseFilterFromConnections(allConnections);
-
     const filtered = applyFilters(allConnections);
 
     if (counter) {
@@ -133,9 +154,6 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
     if (empty) empty.style.display = "none";
-
-    // ✅ lấy currentUserId (đảm bảo auth.js đã set localStorage userId khi /auth/me)
-    const currentUserId = Number(localStorage.getItem("userId") || 0);
 
     const html = filtered
       .map((item) => {
@@ -165,7 +183,7 @@ document.addEventListener("DOMContentLoaded", function () {
           : "-";
 
         // ✅ CHỈ OWNER MỚI HIỆN NÚT XÓA
-        const isOwner = Number(item.ownerId) === currentUserId;
+        const isOwner = Number(item.ownerId || 0) === Number(currentUserId || 0);
 
         return `
           <div class="list-group-item py-3" data-id="${escapeHtml(item.id)}">
@@ -178,9 +196,7 @@ document.addEventListener("DOMContentLoaded", function () {
               </div>
 
               <div class="d-flex gap-2">
-                <a class="btn btn-sm btn-outline-primary" href="${mailto}">
-                  Liên hệ
-                </a>
+                <a class="btn btn-sm btn-outline-primary" href="${mailto}">Liên hệ</a>
                 <button class="btn btn-sm btn-outline-secondary" type="button" data-copy="${escapeHtml(email)}">
                   Copy email
                 </button>
@@ -196,9 +212,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             ${
               isOwner
-                ? `<button class="btn btn-sm btn-link text-danger px-0 mt-2" data-delete="${escapeHtml(item.id)}">
-                     Xóa
-                   </button>`
+                ? `<button class="btn btn-sm btn-link text-danger px-0 mt-2" data-delete="${escapeHtml(item.id)}">Xóa</button>`
                 : ""
             }
           </div>
@@ -288,12 +302,12 @@ document.addEventListener("DOMContentLoaded", function () {
     setStatus("Backend version: không có 'xóa tất cả' (vì phải đảm bảo quyền owner).");
   });
 
-  // Filters
   filterKeyword?.addEventListener("input", render);
   filterCourse?.addEventListener("change", render);
 
   // ======= INIT =======
   (async function init() {
+    currentUserId = await ensureCurrentUserId();   // ✅ quan trọng
     await loadCourses();
     await loadConnections();
     render();

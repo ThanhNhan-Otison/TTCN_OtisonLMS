@@ -12,24 +12,14 @@ import java.util.Optional;
 public interface SubmissionRepository extends JpaRepository<Submission,Integer> {
 
     // Sinh viên xem bài nộp của chính mình cho 1 bài tập
-
-
     List<Submission> findByAssignmentId_AssignmentId(Integer assignmentId);
-
     List<Submission> findByStudentId_UserId(Integer userId);
     Optional<Submission> findByAssignmentId_AssignmentIdAndStudentId_UserId(Integer assignmentId, Integer studentId);
 
-
-
-
-
-
     @Query("select count(distinct s.studentId.userId) from Submission s where s.assignmentId.assignmentId = :aid")
     long countDistinctStudentsByAssignment(@Param("aid") Integer assignmentId);
-
     @Query("select count(s) from Submission s where s.assignmentId.assignmentId = :aid")
     long countTotalSubmissionsByAssignment(@Param("aid") Integer assignmentId);
-
     // TEACHER xem tất cả bài nộp thuộc các course mình dạy
     @Query("""
         select s from Submission s
@@ -41,8 +31,6 @@ public interface SubmissionRepository extends JpaRepository<Submission,Integer> 
     """)
     List<Submission> findAllByTeacher(@Param("teacherId") Integer teacherId);
 
-
-
     // TEACHER: tổng số lượt nộp trong các khóa mình dạy
     @Query("""
         select count(s) from Submission s
@@ -52,7 +40,6 @@ public interface SubmissionRepository extends JpaRepository<Submission,Integer> 
         where c.teacher.userId = :teacherId
     """)
     long countAllByTeacher(@Param("teacherId") Integer teacherId);
-
     // TEACHER: số sinh viên DISTINCT đã nộp bài
     @Query("""
         select count(distinct s.studentId.userId) from Submission s
@@ -62,8 +49,4 @@ public interface SubmissionRepository extends JpaRepository<Submission,Integer> 
         where c.teacher.userId = :teacherId
     """)
     long countDistinctStudentsByTeacher(@Param("teacherId") Integer teacherId);
-
-//    long countAllByTeacher(Integer teacherId);
-//    long countDistinctStudentsByTeacher(Integer teacherId);
-
 }

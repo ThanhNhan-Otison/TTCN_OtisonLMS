@@ -62,39 +62,81 @@ async function requireTeacherOrAdmin(redirectTo = "home.html") {
 
 
 // gọi BE lấy user hiện tại
-async function tryLoadMe() {
-  try {
-    const me = await apiFetch("/auth/me");
-    if (!me) return null;
+// async function tryLoadMe() {
+//   try {
+//     const me = await apiFetch("/auth/me");
+//     if (!me) return null;
 
-    // ✅ lưu userId để FE dùng (ẩn/hiện nút Xóa theo owner)
-    const uid = me.userId ?? me.id;
-    if (uid != null) localStorage.setItem("userId", String(uid));
+//     // ✅ lưu userId để FE dùng (ẩn/hiện nút Xóa theo owner)
+//     const uid = me.userId ?? me.id;
+//     if (uid != null) localStorage.setItem("userId", String(uid));
 
-    const role = me.role ? String(me.role).toUpperCase() : "";
-    if (role) localStorage.setItem("role", role);
-    if (me.firstName) localStorage.setItem("firstName", me.firstName);
+//     const role = me.role ? String(me.role).toUpperCase() : "";
+//     if (role) localStorage.setItem("role", role);
+//     if (me.firstName) localStorage.setItem("firstName", me.firstName);
 
-    localStorage.setItem(
-      "userInfo",
-      JSON.stringify({
-        id: uid,
-        email: me.email,
-        fullName: me.firstName ?? me.ten ?? "",
-        role,
-        status: me.status ?? me.trangThai,
-      })
-    );
+//     localStorage.setItem(
+//       "userInfo",
+//       JSON.stringify({
+//         id: uid,
+//         email: me.email,
+//         fullName: me.firstName ?? me.ten ?? "",
+//         role,
+//         status: me.status ?? me.trangThai,
+//       })
+//     );
 
-    return me;
-  } catch (e) {
-    // token hết hạn / sai
-    if (String(e.message || "").includes("401")) {
-      if (typeof clearAuth === "function") clearAuth();
+//     return me;
+//   } catch (e) {
+//     // token hết hạn / sai
+//     if (String(e.message || "").includes("401")) {
+//       if (typeof clearAuth === "function") clearAuth();
+//     }
+//     return null;
+//   }
+// }
+// ===== Load user info (cache) =====
+let __mePromise = null;
+
+async function tryLoadMe(force = false) {
+  if (!force && __mePromise) return __mePromise;
+
+  __mePromise = (async () => {
+    try {
+      const me = await apiFetch("/auth/me");
+      if (!me) return null;
+
+      const uid = me.userId ?? me.id;
+      if (uid != null) localStorage.setItem("userId", String(uid));
+
+      const role = me.role ? String(me.role).toUpperCase() : "";
+      if (role) localStorage.setItem("role", role);
+      if (me.firstName) localStorage.setItem("firstName", me.firstName);
+
+      localStorage.setItem(
+        "userInfo",
+        JSON.stringify({
+          id: uid,
+          email: me.email,
+          fullName: me.firstName ?? me.ten ?? "",
+          role,
+          status: me.status ?? me.trangThai,
+        })
+      );
+
+      return me;
+    } catch (e) {
+      // token hết hạn/sai
+      if (String(e.message || "").includes("401")) {
+        clearAuth?.();
+      }
+      return null;
     }
-    return null;
-  }
+  })();
+
+  return __mePromise;
 }
+
 
 
 // ================= LOGIN =================

@@ -301,6 +301,155 @@ function bindUsersUI() {
   });
 }
 
+// ===== ADMIN COURSES =====
+const ADMIN_COURSES_API = "/courses"; // GET list courses
+let __allCourses = [];
+let __activeCourseTab = "publish"; // publish | hidden | draft
+
+function courseStatusText(status) {
+  const s = String(status || "").toLowerCase();
+  if (s === "publish") return "HIỆN";
+  if (s === "hidden") return "ẨN";
+  if (s === "draft") return "NHÁP";
+  return s ? s.toUpperCase() : "—";
+}
+
+function courseStatusBadge(status) {
+  const s = String(status || "").toLowerCase();
+  if (s === "publish") return `<span class="badge text-bg-success">HIỆN</span>`;
+  if (s === "hidden") return `<span class="badge text-bg-secondary">ẨN</span>`;
+  if (s === "draft") return `<span class="badge text-bg-warning text-dark">NHÁP</span>`;
+  return `<span class="badge text-bg-light text-dark">${courseStatusText(status)}</span>`;
+}
+
+function normalizeCourse(c) {
+  return {
+    id: c.courseId ?? c.id,
+    name: c.courseName ?? c.name ?? c.ten ?? "-",
+    description: c.description ?? c.moTa ?? "",
+    status: String(c.status ?? c.trangThai ?? "").toLowerCase(), // publish|hidden|draft
+  };
+}
+
+function renderCourses() {
+  const tbody = document.getElementById("coursesTbody");
+  if (!tbody) return;
+
+  const q = norm(document.getElementById("courseSearch")?.value);
+
+  const rows = __allCourses
+    .filter(c => (String(c.status || "").toLowerCase() === __activeCourseTab))
+    .filter(c => !q || norm(c.name).includes(q) || norm(c.description).includes(q));
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="5" class="small-muted">Không có khóa học phù hợp.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map((c, idx) => {
+    const id = c.id;
+
+    // disable nút nếu đang ở đúng trạng thái
+    const disPublish = c.status === "publish" ? "disabled" : "";
+    const disHidden = c.status === "hidden" ? "disabled" : "";
+    const disDraft = c.status === "draft" ? "disabled" : "";
+
+    return `
+      <tr class="text-dark">
+        <td>${idx + 1}</td>
+        <td class="fw-semibold">${c.name}</td>
+        <td>${c.description ? c.description : `<span class="small-muted">-</span>`}</td>
+        <td>${courseStatusBadge(c.status)}</td>
+        <td class="text-end">
+         
+          <button class="btn btn-outline-success btn-sm me-1" data-cact="publish" data-id="${id}" ${disPublish}>Hiện</button>
+          <button class="btn btn-outline-secondary btn-sm me-1" data-cact="hidden" data-id="${id}" ${disHidden}>Ẩn</button>
+          <button class="btn btn-outline-warning btn-sm text-dark" data-cact="draft" data-id="${id}" ${disDraft}>Nháp</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+{/* <a class="btn btn-outline-primary btn-sm me-1" href="stats.html?id=${encodeURIComponent(id)}">Thống kê</a> */}
+
+async function loadCourses() {
+  const tbody = document.getElementById("coursesTbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = `<tr><td colspan="8" class="small-muted">Đang tải...</td></tr>`;
+
+  try {
+    const courses = await apiFetch(ADMIN_COURSES_API);
+    if (!Array.isArray(courses)) throw new Error("API courses không trả về mảng");
+
+    __allCourses = courses.map(normalizeCourse);
+    renderCourses();
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-danger">Không tải được khóa học: ${e.message || e}</td></tr>`;
+  }
+}
+
+// ✅ dùng đúng hàm của bạn
+async function setCourseStatus(courseId, status) {
+  return apiFetch(`/admin/courses/${courseId}/status`, {
+    method: "PATCH",
+    json: { status }, // "publish" | "hidden" | "draft"
+  });
+}
+
+async function updateCourseStatus(courseId, status) {
+  try {
+    await setCourseStatus(courseId, status);
+    toast?.(`Đã cập nhật trạng thái: ${courseStatusText(status)}`, "success");
+
+    // update local cache
+    __allCourses = __allCourses.map(c =>
+      String(c.id) === String(courseId) ? { ...c, status } : c
+    );
+
+    renderCourses();
+  } catch (e) {
+    toast?.(`Cập nhật thất bại: ${e.message || e}`, "danger");
+    console.error(e);
+  }
+}
+
+function bindCoursesUI() {
+  const tbody = document.getElementById("coursesTbody");
+  if (!tbody) return;
+
+  // tabs
+  const tabs = document.querySelectorAll("#courseTabs .nav-link");
+  tabs.forEach(btn => {
+    btn.addEventListener("click", () => {
+      tabs.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      __activeCourseTab = btn.getAttribute("data-status") || "publish";
+      renderCourses();
+    });
+  });
+
+  // search
+  const search = document.getElementById("courseSearch");
+  if (search) search.addEventListener("input", () => renderCourses());
+
+  // reload
+  const reload = document.getElementById("btnReloadCourses");
+  if (reload) reload.addEventListener("click", () => loadCourses());
+
+  // actions
+  tbody.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-cact]");
+    if (!btn) return;
+
+    const act = btn.dataset.cact; // publish|hidden|draft
+    const id = btn.dataset.id;
+
+    updateCourseStatus(id, act);
+  });
+}
+
+
 
 // ===== DASHBOARD MAIN =====
 document.addEventListener("DOMContentLoaded", function () {
@@ -353,12 +502,16 @@ document.addEventListener("DOMContentLoaded", function () {
     //   document.getElementById("countSubmissions").innerText = Array.isArray(s) ? s.length : 0;
     // } catch { document.getElementById("countSubmissions").innerText = "0"; }
     // ADMIN không xem submissions/me => set 0 hoặc ẩn card này
-    document.getElementById("countSubmissions").innerText = "0";
+    // document.getElementById("countSubmissions").innerText = "0";
 
 
     // 6) USERS: bind + load
     bindUsersUI();
     loadUsers();
+    // 7) COURSES: bind + load
+    bindCoursesUI();
+    loadCourses();
+
   })();
 
   // Logout

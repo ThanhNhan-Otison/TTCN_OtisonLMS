@@ -9,157 +9,153 @@
   <link href="assets/css/app.css" rel="stylesheet">
   <link href="assets/css/footer.css" rel="stylesheet">
 </head>
-
 <body>
+  <div class="page-wrapper">
+    <div id="appNav"></div>
 
+    <div class="main-content">
+      <div class="container py-4">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="p-3 bg-white border rounded-3">
+              <div class="small-muted">Tổng khóa học</div>
+              <div class="fs-3 fw-bold" id="countCourses">-</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3 bg-white border rounded-3">
+              <div class="small-muted">Bài tập</div>
+              <div class="fs-3 fw-bold" id="countAssignments">-</div>
+            </div>
+          </div>
+        </div>
+        <!-- ===== ADMIN: USERS MANAGEMENT ===== -->
+        <div class="row g-3 mt-2">
+          <div class="col-12">
+            <div class="card shadow-soft p-4">
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div>
+                  <h5 class="mb-1">Danh Sách Tài Khoản</h5>
+                </div>
 
+                <div class="d-flex gap-2">
+                  <input id="userSearch" class="form-control form-control-sm" style="min-width:240px"
+                    placeholder="Tìm theo email / tên...">
+                  <button id="btnReloadUsers" class="btn btn-outline-primary btn-sm">Tải lại</button>
+                </div>
+              </div>
+
+              <ul class="nav nav-pills mt-3" id="userTabs">
+                <li class="nav-item">
+                  <button class="nav-link active" data-role="USER" type="button">USER</button>
+                </li>
+                <li class="nav-item">
+                  <button class="nav-link" data-role="TEACHER" type="button">TEACHER</button>
+                </li>
+              </ul>
+
+              <div class="table-responsive mt-3">
+                <table class="table align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width: 56px;">#</th>
+                      <th>Email</th>
+                      <th>Họ tên</th>
+                      <th>Role</th>
+                      <th>Trạng thái</th>
+                      <th class="text-end" style="width: 220px;">Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody id="usersTbody">
+                    <tr>
+                      <td colspan="6" class="small-muted">Đang tải...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== /ADMIN: USERS MANAGEMENT ===== -->
+
+        <!-- ===== ADMIN: COURSES MANAGEMENT ===== -->
+        <div class="row g-3 mt-2">
+          <div class="col-12">
+            <div class="card shadow-soft p-4 ">
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div>
+                  <h5 class="mb-1">Danh Sách Khóa Học</h5>
+                </div>
+
+                <div class="d-flex gap-2">
+                  <input id="courseSearch" class="form-control form-control-sm" style="min-width:240px"
+                    placeholder="Tìm theo tên / mô tả...">
+                  <button id="btnReloadCourses" class="btn btn-outline-primary btn-sm">Tải lại</button>
+                </div>
+              </div>
+
+              <ul class="nav nav-pills mt-3" id="courseTabs">
+                <li class="nav-item">
+                  <button class="nav-link active" data-status="publish" type="button">Hiện</button>
+                </li>
+                <li class="nav-item">
+                  <button class="nav-link" data-status="hidden" type="button">Ẩn</button>
+                </li>
+                <li class="nav-item">
+                  <button class="nav-link" data-status="draft" type="button">Nháp</button>
+                </li>
+              </ul>
+
+              <div class="table-responsive mt-3">
+                <table class="table align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width:56px;">#</th>
+                      <th>Tên khóa học</th>
+                      <th>Mô tả</th>
+                      <th>Trạng thái</th>
+                      <th class="text-end" style="width:220px;">Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody id="coursesTbody">
+                    <tr>
+                      <td colspan="8" class="small-muted">Đang tải...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <br>
+        <!-- ===== /ADMIN: COURSES MANAGEMENT ===== -->
+        <div>
+          <div class="col-md-4">
+            <div class="card shadow-soft p-4">
+              <h5 class="mb-2">Đi nhanh</h5>
+              <div class="d-grid gap-2">
+                <a class="btn btn-primary" href="courses.html">Xem khóa học</a>
+                <!-- <a class="btn btn-outline-primary" href="assignments.html">Xem bài tập</a>
+          <a class="btn btn-outline-primary" href="submissions.html">Bài nộp của tôi</a> -->
+                <!-- <a class="btn btn-outline-primary" href="quiz.html">Quiz</a> -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:1055;"></div>
+      </div>
+    </div>
+
+    <div id="appFooter"></div>
+  </div>
   <script src="assets/js/api.js"></script>
   <script src="assets/js/auth.js"></script>
   <script src="assets/js/nav.js"></script>
-  <script>requireAuth();</script>
-  <div id="appNav"></div>
-
- 
-  <div class="main-content">
-
-  <div class="container py-4">
-    <div class="row g-3">
-      <div class="col-md-6">
-        <div class="p-3 bg-white border rounded-3">
-          <div class="small-muted">Tổng khóa học</div>
-          <div class="fs-3 fw-bold" id="countCourses">-</div>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="p-3 bg-white border rounded-3">
-          <div class="small-muted">Bài tập</div>
-          <div class="fs-3 fw-bold" id="countAssignments">-</div>
-        </div>
-      </div>
-    </div>
-    <!-- ===== ADMIN: USERS MANAGEMENT ===== -->
-    <div class="row g-3 mt-2">
-      <div class="col-12">
-        <div class="card shadow-soft p-4">
-          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-            <div>
-              <h5 class="mb-1">Danh Sách Tài Khoản</h5>
-            </div>
-
-            <div class="d-flex gap-2">
-              <input id="userSearch" class="form-control form-control-sm" style="min-width:240px"
-                placeholder="Tìm theo email / tên...">
-              <button id="btnReloadUsers" class="btn btn-outline-primary btn-sm">Tải lại</button>
-            </div>
-          </div>
-
-          <ul class="nav nav-pills mt-3" id="userTabs">
-            <li class="nav-item">
-              <button class="nav-link active" data-role="USER" type="button">USER</button>
-            </li>
-            <li class="nav-item">
-              <button class="nav-link" data-role="TEACHER" type="button">TEACHER</button>
-            </li>
-          </ul>
-
-          <div class="table-responsive mt-3">
-            <table class="table align-middle">
-              <thead>
-                <tr>
-                  <th style="width: 56px;">#</th>
-                  <th>Email</th>
-                  <th>Họ tên</th>
-                  <th>Role</th>
-                  <th>Trạng thái</th>
-                  <th class="text-end" style="width: 220px;">Hành động</th>
-                </tr>
-              </thead>
-              <tbody id="usersTbody">
-                <tr>
-                  <td colspan="6" class="small-muted">Đang tải...</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== /ADMIN: USERS MANAGEMENT ===== -->
-
-    <!-- ===== ADMIN: COURSES MANAGEMENT ===== -->
-    <div class="row g-3 mt-2">
-      <div class="col-12">
-        <div class="card shadow-soft p-4 ">
-          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-            <div>
-              <h5 class="mb-1">Danh Sách Khóa Học</h5>
-            </div>
-
-            <div class="d-flex gap-2">
-              <input id="courseSearch" class="form-control form-control-sm" style="min-width:240px"
-                placeholder="Tìm theo tên / mô tả...">
-              <button id="btnReloadCourses" class="btn btn-outline-primary btn-sm">Tải lại</button>
-            </div>
-          </div>
-
-          <ul class="nav nav-pills mt-3" id="courseTabs">
-            <li class="nav-item">
-              <button class="nav-link active" data-status="publish" type="button">Hiện</button>
-            </li>
-            <li class="nav-item">
-              <button class="nav-link" data-status="hidden" type="button">Ẩn</button>
-            </li>
-            <li class="nav-item">
-              <button class="nav-link" data-status="draft" type="button">Nháp</button>
-            </li>
-          </ul>
-
-          <div class="table-responsive mt-3">
-            <table class="table align-middle">
-              <thead>
-                <tr>
-                  <th style="width:56px;">#</th>
-                  <th>Tên khóa học</th>
-                  <th>Mô tả</th>
-                  <th>Trạng thái</th>
-                  <th class="text-end" style="width:220px;">Hành động</th>
-                </tr>
-              </thead>
-              <tbody id="coursesTbody">
-                <tr>
-                  <td colspan="8" class="small-muted">Đang tải...</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-    <br>
-    <!-- ===== /ADMIN: COURSES MANAGEMENT ===== -->
-    <div>
-      <div class="col-md-4">
-        <div class="card shadow-soft p-4">
-          <h5 class="mb-2">Đi nhanh</h5>
-          <div class="d-grid gap-2">
-            <a class="btn btn-primary" href="courses.html">Xem khóa học</a>
-            <!-- <a class="btn btn-outline-primary" href="assignments.html">Xem bài tập</a>
-          <a class="btn btn-outline-primary" href="submissions.html">Bài nộp của tôi</a> -->
-            <!-- <a class="btn btn-outline-primary" href="quiz.html">Quiz</a> -->
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:1055;"></div>
-  </div>
-</div>
-  <div id="appFooter"></div>
-  <script src="assets/js/footer.js"></script>
   <script src="assets/js/ui.js"></script>
   <script src="assets/js/dashboard.js"></script>
+  <script src="assets/js/footer.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

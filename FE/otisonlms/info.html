@@ -1,58 +1,64 @@
 <!doctype html>
 <html lang="vi">
+
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Thông tin cá nhân - OtisonLMS</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="assets/css/app.css" rel="stylesheet">
-  <link  href="assets/css/footer.css" rel="stylesheet">
+  <link href="assets/css/footer.css" rel="stylesheet">
 </head>
+
 <body>
-<script src="assets/js/api.js"></script>
-<script src="assets/js/auth.js"></script>
-<script src="assets/js/nav.js"></script>
-<script>requireAuth();</script>
-<div id="appNav"></div>
+  <div class="page-wrapper">
+    <div id="appNav"></div>
 
-  <div class="main-content">
-<main class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-md-7 col-lg-6">
-      <div class="card shadow-soft p-4">
-        <h2 class="mb-4 text-center">Thông tin cá nhân</h2>
-        <div id="userInfoBox" class="mb-3">
-          <div class="text-center text-muted">Đang tải thông tin...</div>
+    <div class="main-content">
+      <main class="container py-5">
+        <div class="row justify-content-center">
+          <div class="col-md-7 col-lg-6">
+            <div class="card shadow-soft p-4">
+              <h2 class="mb-4 text-center">Thông tin cá nhân</h2>
+              <div id="userInfoBox" class="mb-3">
+                <div class="text-center text-muted">Đang tải thông tin...</div>
+              </div>
+              <div class="d-flex justify-content-center">
+                <a href="home.html" class="btn btn-secondary">Quay lại trang chủ</a>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="d-flex justify-content-center">
-          <a href="home.html" class="btn btn-secondary">Quay lại trang chủ</a>
-        </div>
-      </div>
+      </main>
     </div>
+    <div id="appFooter"></div>
   </div>
-</main>
-</div>
-<script src="assets/js/auth.js"></script>
-<script src="assets/js/api.js"></script>
-  <div id="appFooter"></div>
-    <script src="assets/js/footer.js"></script>
-<script>
-async function loadInfo() {
-  // nếu chưa có userInfo thì gọi BE lấy
-  if (!localStorage.getItem("userInfo")) {
-    await tryLoadMe();
-  }
 
-  let info = localStorage.getItem('userInfo');
-  if (!info) {
-    document.getElementById('userInfoBox').innerHTML =
-      '<div class="alert alert-warning">Chưa có thông tin. Vui lòng đăng nhập lại.</div>';
-    return;
-  }
+ 
+  <script src="assets/js/api.js"></script>
+ <script src="assets/js/auth.js"></script>
+   <script src="assets/js/nav.js"></script>
+     <script>requireAuth();</script>
+     
+  <script src="assets/js/info.js"></script>
+  <script src="assets/js/footer.js"></script>
+  <!-- <script>
+    async function loadInfo() {
+      // nếu chưa có userInfo thì gọi BE lấy
+      if (!localStorage.getItem("userInfo")) {
+        await tryLoadMe();
+      }
 
-  info = JSON.parse(info);
+      let info = localStorage.getItem('userInfo');
+      if (!info) {
+        document.getElementById('userInfoBox').innerHTML =
+          '<div class="alert alert-warning">Chưa có thông tin. Vui lòng đăng nhập lại.</div>';
+        return;
+      }
 
-  document.getElementById('userInfoBox').innerHTML = `
+      info = JSON.parse(info);
+
+      document.getElementById('userInfoBox').innerHTML = `
     <ul class="list-group mb-3">
       <li class="list-group-item"><strong>Họ tên:</strong> ${info.fullName || ''}</li>
       <li class="list-group-item"><strong>Email:</strong> ${info.email || ''}</li>
@@ -60,11 +66,11 @@ async function loadInfo() {
       <li class="list-group-item"><strong>Mã người dùng:</strong> ${info.id || ''}</li>
     </ul>
   `;
-}
+    }
 
-loadInfo();
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    loadInfo();
+  </script> -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

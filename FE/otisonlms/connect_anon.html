@@ -1,83 +1,94 @@
 <!doctype html>
 <html lang="vi">
+
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Kết nối ẩn danh - OtisonLMS</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="assets/css/app.css" rel="stylesheet">
   <link href="assets/css/connect_anon.css" rel="stylesheet">
-  <link  href="assets/css/footer.css" rel="stylesheet">
+  <link href="assets/css/footer.css" rel="stylesheet">
 </head>
-<body>
-<script src="assets/js/api.js"></script>
-<script src="assets/js/auth.js"></script>
-<script src="assets/js/nav.js"></script>
-<script>requireAuth();</script>
-<div id="appNav"></div>
 
-  <div class="main-content">
-<main class="container my-5">
-  <div class="row g-4">
-    <div class="col-lg-5">
-      <div class="card-soft p-4 h-100">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-          <h3 class="h5 mb-0">Ghép nhóm ẩn danh</h3>
-          <span class="badge text-bg-primary">EXPERIMENT</span>
-        </div>
-        <p class="text-muted small mb-4">Nếu chưa có thông tin bạn bè cụ thể, bạn vẫn có thể gửi nhu cầu muốn học chung môn nào. Hệ thống sẽ gợi ý những người dùng khác đang muốn ghép cùng khóa đó.</p>
-        <form id="anonForm" class="vstack gap-3">
-          <div>
-            <label class="form-label">Khóa học muốn học chung</label>
-            <select class="form-select" id="anonCourse" required>
-              <option value="">Chọn khóa học</option>
-            </select>
-          </div>
-          <div>
-            <label class="form-label">Email của bạn (sẽ dùng để liên hệ)</label>
-            <input type="email" class="form-control" id="anonEmail" placeholder="ban@stu.edu.vn" required>
-          </div>
-          <div>
-            <label class="form-label">Ghi chú thêm (tuỳ chọn)</label>
-            <textarea class="form-control" id="anonNote" rows="3" placeholder="Thời gian rảnh, mục tiêu học..."></textarea>
-          </div>
-          <div class="text-muted small">Bạn có thể để trống tên bạn bè. Thông tin này chỉ lưu cục bộ trên trình duyệt.</div>
-          <button class="btn btn-primary" type="submit">Lưu nhu cầu</button>
-          <button class="btn btn-outline-danger" type="button" id="anonClear">Xóa tất cả</button>
-          <div class="small text-muted" id="anonStatus"></div>
-        </form>
-      </div>
-    </div>
+<body > 
+  <!-- class="connect-page" -->
 
-    <div class="col-lg-7">
-      <div class="card-soft p-4 h-100">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-          <h3 class="h5 mb-0">Người muốn học chung</h3>
-          <span class="text-muted small" id="anonCounter"></span>
-        </div>
-        <div class="row g-2 mb-3">
-          <div class="col-md-6">
-            <input class="form-control" id="anonFilterKeyword" placeholder="Tìm email hoặc ghi chú">
+  <div class="page-wrapper">
+    <div id="appNav"></div>
+    <div class="main-content">
+      <main class="container my-5">
+        <div class="row g-4">
+          <div class="col-lg-5">
+            <div class="card-soft p-4 h-100">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <h3 class="h5 mb-0">Ghép nhóm ẩn danh</h3>
+                <span class="badge text-bg-primary">EXPERIMENT</span>
+              </div>
+              <p class="text-muted small mb-4">Nếu chưa có thông tin bạn bè cụ thể, bạn vẫn có thể gửi nhu cầu muốn học
+                chung môn nào. Hệ thống sẽ gợi ý những người dùng khác đang muốn ghép cùng khóa đó.</p>
+              <form id="anonForm" class="vstack gap-3">
+                <div>
+                  <label class="form-label">Khóa học muốn học chung</label>
+                  <select class="form-select" id="anonCourse" required>
+                    <option value="">Chọn khóa học</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label">Email của bạn (sẽ dùng để liên hệ)</label>
+                  <input type="email" class="form-control" id="anonEmail" placeholder="ban@stu.edu.vn" required>
+                </div>
+                <div>
+                  <label class="form-label">Ghi chú thêm (tuỳ chọn)</label>
+                  <textarea class="form-control" id="anonNote" rows="3"
+                    placeholder="Thời gian rảnh, mục tiêu học..."></textarea>
+                </div>
+                <div class="text-muted small">Bạn có thể để trống tên bạn bè. Thông tin này chỉ lưu cục bộ trên trình
+                  duyệt.</div>
+                <button class="btn btn-primary" type="submit">Lưu nhu cầu</button>
+                <button class="btn btn-outline-danger" type="button" id="anonClear">Xóa tất cả</button>
+                <div class="small text-muted" id="anonStatus"></div>
+              </form>
+            </div>
           </div>
-          <div class="col-md-6">
-            <select class="form-select" id="anonFilterCourse">
-              <option value="">Tất cả khóa học</option>
-            </select>
+
+          <div class="col-lg-7">
+            <div class="card-soft p-4 h-100">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <h3 class="h5 mb-0">Người muốn học chung</h3>
+                <span class="text-muted small" id="anonCounter"></span>
+              </div>
+              <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                  <input class="form-control" id="anonFilterKeyword" placeholder="Tìm email hoặc ghi chú">
+                </div>
+                <div class="col-md-6">
+                  <select class="form-select" id="anonFilterCourse">
+                    <option value="">Tất cả khóa học</option>
+                  </select>
+                </div>
+              </div>
+              <div id="anonEmpty" class="text-center text-muted py-5">
+                <p class="mb-1">Chưa có nhu cầu nào.</p>
+                <p class="small">Điền form bên trái để bắt đầu.</p>
+              </div>
+              <div class="list-group list-group-flush" id="anonList"></div>
+            </div>
           </div>
         </div>
-        <div id="anonEmpty" class="text-center text-muted py-5">
-          <p class="mb-1">Chưa có nhu cầu nào.</p>
-          <p class="small">Điền form bên trái để bắt đầu.</p>
-        </div>
-        <div class="list-group list-group-flush" id="anonList"></div>
-      </div>
+      </main>
+      <br>
+      <div id="appFooter"></div>
     </div>
   </div>
-</main>
-</div>
-<script src="assets/js/connect_anon.js"></script>
-  <div id="appFooter"></div>
-    <script src="assets/js/footer.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/connect_anon.js"></script>
+  <script src="assets/js/footer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

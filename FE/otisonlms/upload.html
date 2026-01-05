@@ -1,42 +1,119 @@
 <!doctype html>
 <html lang="vi">
+
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OtisonLMS - Upload video</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="assets/css/app.css" rel="stylesheet">
-  <link  href="assets/css/footer.css" rel="stylesheet">
+  <link href="assets/css/footer.css" rel="stylesheet">
 </head>
+
 <body>
 
-<script src="assets/js/api.js"></script>
-<script src="assets/js/auth.js"></script>
-<script src="assets/js/nav.js"></script>
-<script>requireAuth();</script>
+  <div class="page-wrapper">
+    <div id="appNav"></div>
 
-<div id="appNav"></div>
-  <div class="main-content"></div>
-<div class="container py-4">
-  <div class="card shadow-soft p-4">
-    <h4 class="mb-2">Upload video</h4>
-    <div class="small-muted mb-3">POST /api/v1/upload/video (form-data: key = <b>file</b>)</div>
+    <div class="main-content">
+      <div class="container py-4">
+        <div class="row g-3">
+          <!-- LEFT: Form tạo bài học -->
+          <div class="col-lg-7">
+            <div class="card shadow-soft p-4">
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <div>
+                  <h4 class="mb-0">Tạo bài học mới</h4>
+                  <div class="small-muted">Gồm: khóa học, tên bài, nội dung và video</div>
+                </div>
+                <span class="ms-auto badge text-bg-info">TEACHER / ADMIN</span>
+              </div>
 
-    <input id="file" type="file" class="form-control" accept="video/*">
-    <button id="btnUpload" class="btn btn-primary mt-3">Upload</button>
+              <!-- cảnh báo quyền -->
+              <div id="roleWarn" class="alert alert-warning d-none mb-3">
+                Chỉ TEACHER hoặc ADMIN mới được tạo bài học / upload video.
+              </div>
 
-    <div class="mt-4">
-      <label class="form-label">Video URL trả về (dán vào videoUrl của Lesson)</label>
-      <input id="out" class="form-control" readonly>
-      <div class="small-muted mt-2">Ví dụ: <code>/videos/xxx.mp4</code></div>
+              <div id="formWrap">
+                <label class="form-label">Khóa học</label>
+                <select id="courseId" class="form-select">
+                  <option value="">-- Chọn khóa học --</option>
+                </select>
+
+                <label class="form-label mt-3">Tên bài học</label>
+                <input id="lessonName" class="form-control" placeholder="VD: Bài 1 - Giới thiệu" />
+
+                <label class="form-label mt-3">Nội dung</label>
+                <textarea id="content" class="form-control" rows="4" placeholder="Mô tả bài học..."></textarea>
+
+                <hr class="my-4" />
+
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                  <div class="me-auto">
+                    <div class="fw-semibold">Video bài học</div>
+                    <div class="small-muted">Upload video để lấy <code>videoUrl</code> dạng <code>/videos/xxx.mp4</code>
+                    </div>
+                  </div>
+                  <button id="btnUpload" class="btn btn-outline-primary">
+                    1) Upload video
+                  </button>
+                </div>
+
+                <input id="file" type="file" class="form-control mt-2" accept="video/*" />
+                <label class="form-label mt-3">videoUrl (tự điền sau khi upload)</label>
+                <input id="videoUrl" class="form-control" placeholder="/videos/xxx.mp4" />
+
+                <div class="d-grid mt-4">
+                  <button id="btnCreateLesson" class="btn btn-primary btn-lg">
+                    2) Tạo bài học
+                  </button>
+                </div>
+
+                <div class="small-muted mt-2">
+                  API upload: <b>POST</b> /api/v1/upload/video (form-data key: <b>file</b>)
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: Preview -->
+          <div class="col-lg-5">
+            <div class="card shadow-soft p-4">
+              <h5 class="mb-2">Preview</h5>
+              <div class="small-muted mb-3">Kiểm tra nhanh trước khi tạo</div>
+
+              <div class="border rounded-3 p-3">
+                <div class="fw-bold" id="pvTitle">—</div>
+                <div class="small-muted mt-1" id="pvCourse">Khóa học: —</div>
+                <div class="mt-2" id="pvContent" style="white-space: pre-wrap;">—</div>
+
+                <div class="mt-3">
+                  <div class="small-muted mb-2">Video</div>
+                  <video id="pvVideo" controls class="w-100 d-none"></video>
+                  <div id="pvVideoMsg" class="small-muted">Chưa có video.</div>
+                </div>
+              </div>
+
+              <div class="alert alert-light border mt-3 mb-0">
+                <div class="fw-semibold">Gợi ý</div>
+                <div class="small-muted">
+                  Nếu videoUrl là <code>C:\...</code> thì web không xem được. Phải là link http(s) hoặc
+                  <code>/videos/...</code>
+                </div>
+              </div>
+            </div>
+
+            <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:1055;"></div>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <div id="appFooter"></div>
   </div>
 
-  <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:1055;"></div>
-</div>
-</div>
-<script src="assets/js/ui.js"></script>
-<script>
+
+  <!-- <script>
 document.getElementById("btnUpload").onclick = async ()=>{
   const f = document.getElementById("file").files[0];
   if(!f) return toast("Chọn video trước", "warning");
@@ -66,9 +143,14 @@ document.getElementById("btnUpload").onclick = async ()=>{
 };
 document.getElementById("logout").onclick = ()=>{ clearAuth(); location.href="login.html"; };
 
-</script>
-  <div id="appFooter"></div>
-    <script src="assets/js/footer.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</script> -->
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script src="assets/js/upload.js"></script>
+  <script src="assets/js/footer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

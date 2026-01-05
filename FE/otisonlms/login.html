@@ -9,52 +9,42 @@
   <link href="assets/css/app.css" rel="stylesheet">
   <link href="assets/css/footer.css" rel="stylesheet">
 </head>
-
 <body>
-
-  <script src="assets/js/nav.js"></script>
- 
-  <script>requireAuth();</script>
-
-  <div id="appNav"></div>
-  <div class="main-content">
+  <div class="page-wrapper">
     <div id="appNav"></div>
-    <div class="container py-5">
-      <div class="row justify-content-center">
-        <div class="col-md-5">
-          <div class="card shadow-soft p-4">
-            <h3 class="mb-1">OtisonLMS</h3>
 
-
-            <div class="mb-3">
-              <label class="form-label">Email</label>
-              <input id="email" class="form-control" placeholder="teacher@gmail.com">
+    <div class="main-content">
+      <div class="container py-5">
+        <div class="row justify-content-center">
+          <div class="col-md-5">
+            <div class="card shadow-soft p-4">
+              <h3 class="mb-1">OtisonLMS</h3>
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input id="email" class="form-control" placeholder="teacher@gmail.com">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Mật khẩu</label>
+                <input id="password" type="password" class="form-control" placeholder="12345">
+              </div>
+              <button id="btnLogin" class="btn btn-primary w-100">Đăng nhập</button>
+              <hr class="my-4" />
+              <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:1055;"></div>
             </div>
-            <div class="mb-3">
-              <label class="form-label">Mật khẩu</label>
-              <input id="password" type="password" class="form-control" placeholder="12345">
-            </div>
-
-            <button id="btnLogin" class="btn btn-primary w-100">Đăng nhập</button>
-
-            <hr class="my-4" />
-
-      
-
-            <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:1055;"></div>
           </div>
         </div>
       </div>
     </div>
+
+    <div id="appFooter"></div>
   </div>
 
   <script src="assets/js/api.js"></script>
   <script src="assets/js/auth.js"></script>
   <script src="assets/js/ui.js"></script>
+  <script src="assets/js/nav.js"></script>
   <script src="assets/js/login.js"></script>
-  <div id="appFooter"></div>
   <script src="assets/js/footer.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

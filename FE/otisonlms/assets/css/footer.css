@@ -1,17 +1,15 @@
-footer{
-  margin-top: auto;
-}
-/* ===== FOOTER DARK ===== */
 footer {
-  background: #0f172a;            /* đen chìm */
-  color: #cbd5e1;                 /* chữ xám nhạt */
+  margin-top: auto;
+  background: #0f172a;
+  color: #cbd5e1;
   padding: 24px 0;
-  margin-top: 48px;
+  /* margin-top: 48px; */
 }
 
 footer h5,
 footer h6 {
-  color: #f8fafc;                 /* chữ tiêu đề sáng hơn */
+  color: #f8fafc;
+  /* chữ tiêu đề sáng hơn */
 }
 
 footer .footer-muted {
@@ -25,10 +23,11 @@ footer a {
 }
 
 footer a:hover {
-  color: #38bdf8;                 /* xanh nhạt khi hover */
+  color: #38bdf8;
+  /* xanh nhạt khi hover */
   text-decoration: none;
 }
 
 footer hr {
-  border-color: rgba(255,255,255,0.08);
+  border-color: rgba(255, 255, 255, 0.08);
 }

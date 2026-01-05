@@ -1,4 +1,6 @@
-body{background:var(--surface-soft-alt);}
+.connect-page{
+  background:var(--surface-soft-alt);
+}
 .card-soft{
   border:1px solid rgba(15,23,42,.08);
   border-radius:18px;

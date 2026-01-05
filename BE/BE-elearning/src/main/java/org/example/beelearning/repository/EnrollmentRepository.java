@@ -2,6 +2,8 @@ package org.example.beelearning.repository;
 
 import org.example.beelearning.entity.Enrollment;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
@@ -11,6 +13,13 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment,Integer> 
     List<Enrollment> findBystudent_userId(Integer userId);
 
     List<Enrollment> findBycourse_courseId(Integer courseCourseId);
+
+    @Query("""
+        select count(e)
+        from Enrollment e
+        where e.course.courseId = :cid
+    """)
+    long countStudentsInCourse(@Param("cid") Integer courseId);
 
 
 }

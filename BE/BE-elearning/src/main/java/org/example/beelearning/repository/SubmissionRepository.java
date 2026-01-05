@@ -49,4 +49,54 @@ public interface SubmissionRepository extends JpaRepository<Submission,Integer> 
         where c.teacher.userId = :teacherId
     """)
     long countDistinctStudentsByTeacher(@Param("teacherId") Integer teacherId);
+
+    @Query("""
+    select count(distinct s.assignmentId.assignmentId)
+    from Submission s
+    join s.assignmentId a
+    join a.lessonId l
+    join l.course c
+    where c.courseId = :cid
+      and s.studentId.userId = :uid
+""")
+    long countDistinctAssignmentsSubmittedInCourse(@Param("cid") Integer courseId,
+                                                   @Param("uid") Integer userId);
+
+// ================== STATS THEO COURSE ==================
+
+    // Tổng số bài nộp trong 1 course
+    @Query("""
+    select count(s)
+    from Submission s
+    join s.assignmentId a
+    join a.lessonId l
+    join l.course c
+    where c.courseId = :cid
+""")
+    long countSubmissionsInCourse(@Param("cid") Integer courseId);
+
+
+    // Số sinh viên DISTINCT đã nộp bài trong course
+    @Query("""
+    select count(distinct s.studentId.userId)
+    from Submission s
+    join s.assignmentId a
+    join a.lessonId l
+    join l.course c
+    where c.courseId = :cid
+""")
+    long countDistinctStudentsSubmittedInCourse(@Param("cid") Integer courseId);
+
+
+    // Điểm trung bình trong course
+    @Query("""
+    select avg(s.score)
+    from Submission s
+    join s.assignmentId a
+    join a.lessonId l
+    join l.course c
+    where c.courseId = :cid
+      and s.score is not null
+""")
+    Double avgScoreInCourse(@Param("cid") Integer courseId);
 }

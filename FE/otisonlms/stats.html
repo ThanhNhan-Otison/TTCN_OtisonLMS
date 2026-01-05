@@ -16,17 +16,17 @@
   <script src="assets/js/auth.js"></script>
   <script src="assets/js/nav.js"></script>
   <!-- <script>requireAuth();</script> -->
+
   <div id="appNav"></div>
 
   <div class="container py-4">
-
-    <!-- HERO (nếu bạn có) -->
+    <!-- HERO -->
     <div class="stats-hero mb-4">
       <div class="d-flex flex-wrap align-items-center gap-3">
         <div class="me-auto">
           <p class="text-uppercase small mb-1 opacity-75">Thống kê khóa học</p>
           <h3 class="h2 mb-0" id="courseTitle">Đang tải...</h3>
-          <p class="mb-0 opacity-75" id="courseSubtitle">Tổng quan lượt tham gia và chất lượng bài nộp.</p>
+          <p class="mb-0 opacity-75" id="courseSubtitle">Tổng quan tình trạng học tập và bài nộp.</p>
         </div>
         <div class="d-flex flex-column align-items-end gap-2">
           <span class="badge text-bg-light text-primary" id="courseCode">#—</span>
@@ -35,15 +35,26 @@
       </div>
     </div>
 
-    <!-- ===== TEACHER / ADMIN VIEW ===== -->
+    <!-- ===== ALL COURSES MODE (khi KHÔNG có ?id=) ===== -->
+    <div class="card shadow-soft p-4 mb-4" id="allCoursesStats" style="display:none;">
+      <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+        <div>
+          <h5 class="mb-0">Thống kê tất cả khóa học</h5>
+          <div class="small text-muted" id="allStatsNote">Đang tải...</div>
+        </div>
+        <button class="btn btn-outline-primary btn-sm" id="btnReloadAllStats">Tải lại</button>
+      </div>
+      <div id="allStatsList" class="d-flex flex-column gap-3"></div>
+    </div>
+
+    <!-- ===== TEACHER / ADMIN VIEW (SINGLE) ===== -->
     <div class="card shadow-soft p-4 mb-4" id="teacherStats" style="display:none;">
       <div class="d-flex justify-content-between align-items-center mb-2">
         <h5 class="mb-0">Tổng quan dành cho giảng viên</h5>
         <span class="badge text-bg-primary" id="statsStatus">Đang xử lý...</span>
       </div>
-      <p class="text-muted small mb-3">
-        Thống kê số học viên đăng ký và tình trạng nộp bài của khóa học.
-      </p>
+
+      <p class="text-muted small mb-3">Thống kê số học viên đăng ký và tình trạng nộp bài của khóa học.</p>
 
       <div class="d-flex gap-3 flex-wrap">
         <div class="stat-card p-3 border rounded-3">
@@ -81,16 +92,14 @@
       <p class="text-muted mt-3 mb-0" id="statsMessage">Vui lòng chọn khóa học để xem thống kê.</p>
     </div>
 
-    <!-- ===== STUDENT / USER VIEW ===== -->
+    <!-- ===== STUDENT / USER VIEW (SINGLE) ===== -->
     <div class="card shadow-soft p-4 mb-4" id="studentStats" style="display:none;">
       <div class="d-flex justify-content-between align-items-center mb-2">
         <h5 class="mb-0">Tổng quan dành cho học viên</h5>
         <span class="badge text-bg-primary" id="studentStatus">Đang xử lý...</span>
       </div>
 
-      <p class="text-muted small mb-3">
-        Số liệu giúp bạn biết lớp của mình đang học đến đâu và mức độ nộp bài so với toàn bộ học viên.
-      </p>
+      <p class="text-muted small mb-3">Theo dõi tiến độ hoàn thành bài tập của bạn trong khóa học.</p>
 
       <div class="progress" style="height:12px;">
         <div class="progress-bar bg-success" id="studentProgressBar" role="progressbar" style="width:0%;">0%</div>
@@ -98,17 +107,17 @@
 
       <div class="small text-muted mt-2" id="studentProgressLabel">Chưa có dữ liệu.</div>
 
-      <ul class="list-group list-group-flush mt-3" id="studentList">
+      <ul class="list-group list-group-flush mt-3">
         <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
           <span>Bài tập trong khóa</span>
           <strong id="studentAssignments">—</strong>
         </li>
         <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-          <span>Bài nộp toàn lớp</span>
+          <span>Bài đã nộp</span>
           <strong id="studentSubmissions">—</strong>
         </li>
         <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-          <span>Điểm trung bình lớp</span>
+          <span>Trạng thái</span>
           <strong id="studentAverage">—</strong>
         </li>
       </ul>
@@ -116,11 +125,16 @@
 
     <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:1055;"></div>
   </div>
+
   <script src="assets/js/ui.js"></script>
   <script src="assets/js/stats.js"></script>
+
   <div id="appFooter"></div>
   <script src="assets/js/footer.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
+
+
 
 </html>

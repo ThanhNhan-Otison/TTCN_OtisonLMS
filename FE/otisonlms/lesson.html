@@ -21,41 +21,43 @@
 
   <div id="appNav"></div>
 
-  <div class="container py-4">
-    <div class="card shadow-soft p-4">
-      <h4 id="lessonName">...</h4>
-      <div id="content" class="mt-2"></div>
 
-      <div class="mt-4">
-        <h6>Video</h6>
+  <div class="main-content">
+    <div class="container py-4">
+      <div class="card shadow-soft p-4">
+        <h4 id="lessonName">...</h4>
+        <div id="content" class="mt-2"></div>
 
-        <!-- container -->
-        <div id="videoWrap" class="ratio ratio-16x9 bg-dark rounded-3 overflow-hidden">
-          <!-- MP4 -->
-          <video id="video" controls style="width:100%;height:100%" class="d-none"></video>
+        <div class="mt-4">
+          <h6>Video</h6>
 
-          <!-- YouTube -->
-          <iframe id="videoFrame" class="d-none" style="width:100%;height:100%;border:0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen>
-          </iframe>
+          <!-- container -->
+          <div id="videoWrap" class="ratio ratio-16x9 bg-dark rounded-3 overflow-hidden">
+            <!-- MP4 -->
+            <video id="video" controls style="width:100%;height:100%" class="d-none"></video>
 
-          <!-- message -->
-          <div id="videoMsg" class="d-none text-white p-3 small"
-            style="display:flex;align-items:center;justify-content:center;text-align:center;">
+            <!-- YouTube -->
+            <iframe id="videoFrame" class="d-none" style="width:100%;height:100%;border:0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen>
+            </iframe>
+
+            <!-- message -->
+            <div id="videoMsg" class="d-none text-white p-3 small"
+              style="display:flex;align-items:center;justify-content:center;text-align:center;">
+            </div>
+          </div>
+
+          <div class="small-muted mt-2">
+            Nếu video bị hỏi login: hãy cấu hình permitAll("/videos/**") hoặc mở ResourceHandler đúng.
           </div>
         </div>
 
-        <div class="small-muted mt-2">
-          Nếu video bị hỏi login: hãy cấu hình permitAll("/videos/**") hoặc mở ResourceHandler đúng.
-        </div>
       </div>
 
+      <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:1055;"></div>
     </div>
-
-    <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:1055;"></div>
   </div>
-
   <script src="assets/js/ui.js"></script>
   <div id="appFooter"></div>
   <script src="assets/js/footer.js"></script>

@@ -103,7 +103,7 @@ public class SecurityConfig {
                                 "/videos/**",
                                 "/submissions/**"
                         ).permitAll()
-
+                        .requestMatchers("/api/v1/teacher/**").hasAnyRole("TEACHER","ADMIN")
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Endpoint cần đăng nhập
                         .requestMatchers("/api/v1/auth/me").authenticated()

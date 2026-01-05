@@ -27,11 +27,6 @@ public class CourseController {
         return courseService.createCourse(req);
     }
 
-    // LẤY DANH SÁCH TẤT CẢ KHÓA HỌC – DÙNG GET
-//    @GetMapping
-//    public List<CourseResponse> getAll() {
-//        return courseService.getAllCourses();
-//    }
     @GetMapping
     public List<CourseResponse> getCourses(Authentication authentication) {
 

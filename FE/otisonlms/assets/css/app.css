@@ -65,3 +65,25 @@ body{ background:var(--surface-alt); color:var(--text); }
 .nav-link{ color:var(--text); font-weight:600; }
 .nav-link.active{ color:var(--brand)!important; position:relative; }
 .nav-link.active::after{ content:""; position:absolute; left:0; right:0; bottom:-10px; height:3px; background:var(--brand); border-radius:3px; }
+
+html, body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Nội dung chính sẽ giãn ra */
+.main-content {
+  flex: 1;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.main-content > .container {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}

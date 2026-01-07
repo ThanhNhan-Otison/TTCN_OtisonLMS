@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         json: {
           name,
           description,
-          // status: "publish", // nếu BE yêu cầu thì bật, không thì bỏ
+          status: "draft",
         },
       });
 

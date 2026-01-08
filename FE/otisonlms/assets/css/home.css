@@ -25,6 +25,10 @@ nav .navbar-brand img {
   min-height: calc(100vh - 160px);
   padding: 40px 0;
 }
+.home-page{
+  --on-primary: #000;
+}
+
 
 .hero-title {
   text-align: center;
@@ -74,8 +78,8 @@ nav .navbar-brand img {
 }
 
 .btn-course-blue {
-  background: var(--brand);
-  border-color: var(--brand);
+  /* background: var(--brand); */
+  border-color: var(--surface-alt);
   color: var(--on-primary);
 }
 
@@ -111,7 +115,7 @@ nav .navbar-brand img {
 }
 
 .all-courses-btn.stats-btn {
-  background: var(--brand);
+  /* background: var(--brand); */
   border: 2px solid #ffffff !important;
   color: #ffffff !important;
 }

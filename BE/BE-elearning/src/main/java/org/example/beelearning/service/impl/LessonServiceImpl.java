@@ -46,6 +46,7 @@ public class LessonServiceImpl implements LessonService {
                 .lessonName(req.getLessonName())
                 .content(req.getContent())
                 .videoUrl(req.getVideoUrl())
+                .fileUrl(req.getFileUrl())
                 .course(course)
                 .build();
 
@@ -136,6 +137,7 @@ public class LessonServiceImpl implements LessonService {
         dto.setLessonName(lesson.getLessonName());
         dto.setContent(lesson.getContent());
         dto.setVideoUrl(lesson.getVideoUrl());
+        dto.setFileUrl(lesson.getFileUrl());
         dto.setCourseId(lesson.getCourse().getCourseId());
         dto.setCourseName(lesson.getCourse().getName());
         return dto;

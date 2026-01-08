@@ -100,6 +100,7 @@ public class SecurityConfig {
                                 "/api/v1/auth/register",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
+                                "/docs/**",
                                 "/videos/**",
                                 "/submissions/**"
                         ).permitAll()
@@ -108,6 +109,7 @@ public class SecurityConfig {
                         // Endpoint cần đăng nhập
                         .requestMatchers("/api/v1/auth/me").authenticated()
 
+                        .requestMatchers("/api/v1/upload/**").hasAnyRole("TEACHER", "ADMIN")
                         // public
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         // Chỉ ADMIN

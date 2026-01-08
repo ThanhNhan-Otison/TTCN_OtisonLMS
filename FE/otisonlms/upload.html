@@ -48,102 +48,43 @@
 
                 <hr class="my-4" />
 
+                <!-- <label class="form-label mt-3"></label> -->
+
+
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                  <div class="me-auto">
+                    <div class="fw-semibold">Tài liệu (PDF / DOC / PPT)</div>
+                  </div>
+                  <input id="fileDoc" type="file" class="form-control" accept=".pdf,.doc,.docx,.ppt,.pptx" />
+                  <input type="hidden" id="fileUrl" />
+
+                </div>
+                <br>
                 <div class="d-flex flex-wrap gap-2 align-items-center">
                   <div class="me-auto">
                     <div class="fw-semibold">Video bài học</div>
-                    <div class="small-muted">Upload video để lấy <code>videoUrl</code> dạng <code>/videos/xxx.mp4</code>
-                    </div>
                   </div>
-                  <button id="btnUpload" class="btn btn-outline-primary">
-                    1) Upload video
-                  </button>
+                  <button id="btnUpload" class="btn btn-outline-primary">Upload video</button>
                 </div>
-
                 <input id="file" type="file" class="form-control mt-2" accept="video/*" />
-                <label class="form-label mt-3">videoUrl (tự điền sau khi upload)</label>
+                <label class="form-label mt-3">videoUrl (điền link trực tiếp)</label>
                 <input id="videoUrl" class="form-control" placeholder="/videos/xxx.mp4" />
 
                 <div class="d-grid mt-4">
-                  <button id="btnCreateLesson" class="btn btn-primary btn-lg">
-                    2) Tạo bài học
-                  </button>
-                </div>
-
-                <div class="small-muted mt-2">
-                  API upload: <b>POST</b> /api/v1/upload/video (form-data key: <b>file</b>)
+                  <button id="btnCreateLesson" class="btn btn-primary btn-lg">Tạo bài học</button>
                 </div>
               </div>
             </div>
           </div>
-
-          <!-- RIGHT: Preview -->
-          <div class="col-lg-5">
-            <div class="card shadow-soft p-4">
-              <h5 class="mb-2">Preview</h5>
-              <div class="small-muted mb-3">Kiểm tra nhanh trước khi tạo</div>
-
-              <div class="border rounded-3 p-3">
-                <div class="fw-bold" id="pvTitle">—</div>
-                <div class="small-muted mt-1" id="pvCourse">Khóa học: —</div>
-                <div class="mt-2" id="pvContent" style="white-space: pre-wrap;">—</div>
-
-                <div class="mt-3">
-                  <div class="small-muted mb-2">Video</div>
-                  <video id="pvVideo" controls class="w-100 d-none"></video>
-                  <div id="pvVideoMsg" class="small-muted">Chưa có video.</div>
-                </div>
-              </div>
-
-              <div class="alert alert-light border mt-3 mb-0">
-                <div class="fw-semibold">Gợi ý</div>
-                <div class="small-muted">
-                  Nếu videoUrl là <code>C:\...</code> thì web không xem được. Phải là link http(s) hoặc
-                  <code>/videos/...</code>
-                </div>
-              </div>
-            </div>
-
-            <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:1055;"></div>
-          </div>
+          <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:1055;"></div>
         </div>
       </div>
     </div>
 
+
     <div id="appFooter"></div>
   </div>
 
-
-  <!-- <script>
-document.getElementById("btnUpload").onclick = async ()=>{
-  const f = document.getElementById("file").files[0];
-  if(!f) return toast("Chọn video trước", "warning");
-
-  const fd = new FormData();
-  fd.append("file", f);
-
-  try {
-    const res = await fetch(`${API_BASE}/upload/video`, {
-      method: "POST",
-      headers: { ...getAuthHeader() }, // KHÔNG set Content-Type, browser tự set boundary
-      body: fd
-    });
-
-    const textOrJson = await (res.headers.get("content-type")||"").includes("application/json")
-      ? res.json()
-      : res.text();
-
-    if(!res.ok) throw new Error(typeof textOrJson === "string" ? textOrJson : JSON.stringify(textOrJson));
-
-    const url = typeof textOrJson === "string" ? textOrJson : (textOrJson.url || textOrJson.path || "");
-    document.getElementById("out").value = url;
-    toast("Upload thành công!", "success");
-  } catch (e) {
-    toast("Upload thất bại: " + e.message, "danger");
-  }
-};
-document.getElementById("logout").onclick = ()=>{ clearAuth(); location.href="login.html"; };
-
-</script> -->
   <script src="assets/js/api.js"></script>
   <script src="assets/js/auth.js"></script>
   <script src="assets/js/nav.js"></script>

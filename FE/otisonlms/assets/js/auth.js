@@ -1,5 +1,3 @@
-
-
 // lưu JWT
 function setJwtToken(token) {
   localStorage.setItem("token", token);

@@ -8,4 +8,6 @@ public class LessonRequest {
     private String content;
     private String videoUrl;
     private Integer courseId; //kh chua bai nay
+    private String fileUrl;
+
 }

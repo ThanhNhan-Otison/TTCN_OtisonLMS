@@ -11,4 +11,5 @@ public class CourseResponse {
     private CourseStatus status;
     private Integer teacherId;
     private String teacherName;
+
 }

@@ -18,5 +18,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
         registry.addResourceHandler("/submissions/**")
                 .addResourceLocations("file:C:/Document/TTCN/BE/BE-elearning/uploads/submissions/");
+        registry.addResourceHandler("/docs/**")
+                .addResourceLocations("file:uploads/docs/");
     }
 }

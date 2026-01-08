@@ -24,6 +24,10 @@ public class Lesson extends BaseEntity {
     @Column(name = "video_url",length = 500)
     private String videoUrl;
 
+    // 🔥 FILE ĐÍNH KÈM
+    @Column(name = "file_url", length = 500)
+    private String fileUrl;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id",nullable = false)
     private Course course; //khoa hoc chua bai nay

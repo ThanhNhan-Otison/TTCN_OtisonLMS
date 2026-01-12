@@ -92,55 +92,113 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .userDetailsService(customUserDetailsService)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .authorizeHttpRequests(auth -> auth
+//
+//                        // Public endpoints (không cần đăng nhập)
+//                        .requestMatchers(
+//                                "/api/v1/auth/login",
+//                                "/api/v1/auth/register",
+//                                "/swagger-ui/**",
+//                                "/v3/api-docs/**",
+//                                "/docs/**",
+//                                "/videos/**",
+//                                "/submissions/**"
+//                        ).permitAll()
+//                        .requestMatchers("/api/v1/teacher/**").hasAnyRole("TEACHER","ADMIN")
+//                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+//                        // Endpoint cần đăng nhập
+//                        .requestMatchers("/api/v1/auth/me").authenticated()
+//
+//                        // ===== ✅ 2 endpoint mới (PHẢI để trước /api/v1/courses/** permitAll) =====
+//                        // USER xem khóa học đã đăng ký (ADMIN cũng xem được nếu muốn)
+//                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/enrolled")
+//                        .hasAnyRole("USER", "ADMIN")
+//
+//                        // TEACHER xem khóa học mình tạo (ADMIN cũng xem được nếu muốn)
+//                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/mine")
+//                        .hasAnyRole("TEACHER", "ADMIN")
+//                        .requestMatchers("/api/v1/upload/**").hasAnyRole("TEACHER", "ADMIN")
+//                        // public
+//                        .requestMatchers("/api/v1/auth/**").permitAll()
+//                        // Chỉ ADMIN
+//                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+//
+//
+//                        // TEACHER hoặc ADMIN
+//                        .requestMatchers("/api/v1/teacher/**").hasAnyRole("TEACHER", "ADMIN")
+//                        .requestMatchers("/api/v1/dashboard").hasAnyRole( "ADMIN")
+//
+//                        // USER/TEACHER/ADMIN đều được (nếu bạn dùng /student/** như khu vực chung)
+//                        .requestMatchers("/api/v1/student/**").hasAnyRole("USER", "TEACHER", "ADMIN")
+//
+//                        // tạo / sửa / xóa course & lesson: TEACHER hoặc ADMIN
+//                        .requestMatchers(HttpMethod.POST, "/api/v1/courses/**", "/api/v1/lessons/**")
+//                        .hasAnyRole("TEACHER", "ADMIN")
+//                        .requestMatchers(HttpMethod.PUT, "/api/v1/courses/**", "/api/v1/lessons/**")
+//                        .hasAnyRole("TEACHER", "ADMIN")
+//                        .requestMatchers(HttpMethod.DELETE, "/api/v1/courses/**", "/api/v1/lessons/**")
+//                        .hasAnyRole("TEACHER", "ADMIN")
+//
+//                        //admin
+//                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+//                        // GET thì cho ai cũng xem
+//                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/**", "/api/v1/lessons/**")
+//                        .permitAll()
+//
+//                        .requestMatchers(
+//                                "/api/v1/submissions/**"
+//                        ).authenticated()
+//
+//                        // còn lại: phải đăng nhập
+//                        .anyRequest().authenticated()
+//                );
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Public endpoints (không cần đăng nhập)
+                        // Public endpoints
                         .requestMatchers(
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/register",
+                                "/api/v1/auth/forgot-password",
+                                "/api/v1/auth/reset-password",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/docs/**",
                                 "/videos/**",
                                 "/submissions/**"
                         ).permitAll()
+
+                        // ✅ Authenticated endpoints (đặt rõ ràng)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/auth/me").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/auth/me").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/auth/change-password").authenticated()
+
+                        // teacher/admin
                         .requestMatchers("/api/v1/teacher/**").hasAnyRole("TEACHER","ADMIN")
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // Endpoint cần đăng nhập
-                        .requestMatchers("/api/v1/auth/me").authenticated()
+                        .requestMatchers("/api/v1/upload/**").hasAnyRole("TEACHER","ADMIN")
 
-                        .requestMatchers("/api/v1/upload/**").hasAnyRole("TEACHER", "ADMIN")
-                        // public
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        // Chỉ ADMIN
+                        // admin
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/dashboard").hasRole("ADMIN")
 
-                        // TEACHER hoặc ADMIN
-                        .requestMatchers("/api/v1/teacher/**").hasAnyRole("TEACHER", "ADMIN")
-                        .requestMatchers("/api/v1/dashboard").hasAnyRole( "ADMIN")
-
-                        // USER/TEACHER/ADMIN đều được (nếu bạn dùng /student/** như khu vực chung)
+                        // student area
                         .requestMatchers("/api/v1/student/**").hasAnyRole("USER", "TEACHER", "ADMIN")
 
-                        // tạo / sửa / xóa course & lesson: TEACHER hoặc ADMIN
-                        .requestMatchers(HttpMethod.POST, "/api/v1/courses/**", "/api/v1/lessons/**")
-                        .hasAnyRole("TEACHER", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/courses/**", "/api/v1/lessons/**")
-                        .hasAnyRole("TEACHER", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/courses/**", "/api/v1/lessons/**")
-                        .hasAnyRole("TEACHER", "ADMIN")
+                        // courses mine/enrolled (đặt trước GET permitAll)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/enrolled").hasAnyRole("USER","ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/mine").hasAnyRole("TEACHER","ADMIN")
 
-                        //admin
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                        // GET thì cho ai cũng xem
-                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/**", "/api/v1/lessons/**")
-                        .permitAll()
+                        // CRUD course/lesson
+                        .requestMatchers(HttpMethod.POST, "/api/v1/courses/**", "/api/v1/lessons/**").hasAnyRole("TEACHER","ADMIN")
+                        .requestMatchers(HttpMethod.PUT,  "/api/v1/courses/**", "/api/v1/lessons/**").hasAnyRole("TEACHER","ADMIN")
+                        .requestMatchers(HttpMethod.DELETE,"/api/v1/courses/**", "/api/v1/lessons/**").hasAnyRole("TEACHER","ADMIN")
 
-                        .requestMatchers(
-                                "/api/v1/submissions/**"
-                        ).authenticated()
+                        // GET public
+                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/**", "/api/v1/lessons/**").permitAll()
 
-                        // còn lại: phải đăng nhập
+                        // submissions: cần login
+                        .requestMatchers("/api/v1/submissions/**").authenticated()
+
                         .anyRequest().authenticated()
                 );
 
@@ -151,29 +209,13 @@ public class SecurityConfig {
         return http.build();
     }
 
+
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-//    @Bean
-//    public CorsConfigurationSource corsConfigurationSource() {
-//        CorsConfiguration config = new CorsConfiguration();
-//        config.setAllowCredentials(true);
-//
-//        config.setAllowedOrigins(List.of(
-//                "http://127.0.0.1:5500",   // Live Server
-//                "http://localhost:5500"
-//        ));
-//
-//        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-//        config.setAllowedHeaders(List.of("*"));
-//        config.setExposedHeaders(List.of("*"));
-//
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", config);
-//        return source;
-//    }
 @Bean
 public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();

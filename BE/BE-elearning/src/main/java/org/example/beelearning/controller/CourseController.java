@@ -6,6 +6,7 @@ import org.example.beelearning.dto.assignment.AssignmentResponse;
 import org.example.beelearning.dto.course.CourseRequest;
 import org.example.beelearning.dto.course.CourseResponse;
 import org.example.beelearning.repository.CourseRepository;
+import org.example.beelearning.security.CustomUserDetails;
 import org.example.beelearning.service.CourseService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -67,5 +68,20 @@ public class CourseController {
     public void delete(@PathVariable Integer id) {
         courseService.deleteCourse(id);
     }
+
+    @GetMapping("/mine")
+    public List<CourseResponse> myCreatedCourses(Authentication authentication) {
+        CustomUserDetails cud = (CustomUserDetails) authentication.getPrincipal();
+        Integer teacherId = cud.getUser().getUserId();
+        return courseService.getCoursesByTeacher(teacherId); // bạn đã có service này
+    }
+
+    @GetMapping("/enrolled")
+    public List<CourseResponse> myEnrolledCourses(Authentication authentication) {
+        CustomUserDetails cud = (CustomUserDetails) authentication.getPrincipal();
+        Integer userId = cud.getUser().getUserId();
+        return courseService.getEnrolledCourses(userId);
+    }
+
 }
 

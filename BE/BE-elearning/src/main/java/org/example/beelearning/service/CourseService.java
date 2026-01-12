@@ -15,5 +15,6 @@ public interface CourseService {
     CourseResponse updateCourse(Integer courseId, CourseRequest req);
     void deleteCourse(Integer courseId);
     void updateStatus(Integer courseId, CourseStatus status);
+    List<CourseResponse> getEnrolledCourses(Integer userId);
 
 }

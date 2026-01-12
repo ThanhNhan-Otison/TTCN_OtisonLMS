@@ -5,15 +5,18 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OtisonLMS - Đăng nhập</title>
+  <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico">
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="assets/css/app.css" rel="stylesheet">
   <link href="assets/css/footer.css" rel="stylesheet">
 </head>
+
 <body>
   <div class="page-wrapper">
     <div id="appNav"></div>
 
-    <div class="main-content">
+    <!-- <div class="main-content">
       <div class="container py-5">
         <div class="row justify-content-center">
           <div class="col-md-5">
@@ -34,7 +37,98 @@
           </div>
         </div>
       </div>
+    </div> -->
+
+    <div class="main-content" style="
+                  background-image: url('assets/img/bg2.jpg');
+                  background-size: cover;
+                  background-position: center;
+                  background-repeat: no-repeat;">>
+      <div class="container py-5">
+        <div class="row justify-content-center">
+          <div class="col-md-5">
+            <div class="card shadow-soft p-4">
+
+              <h3 class="mb-3">OtisonLMS</h3>
+
+              <!-- LOGIN -->
+              <div id="loginBox" class="box is-active">
+                <div class="mb-3">
+                  <label class="form-label">Email</label>
+                  <input id="email" class="form-control" placeholder="teacher@gmail.com">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Mật khẩu</label>
+                  <input id="password" type="password" class="form-control" placeholder="12345">
+                </div>
+
+                <button id="btnLogin" type="button" class="btn btn-primary w-100">
+                  Đăng nhập
+                </button>
+
+                <div class="text-end mt-2">
+                  <button id="btnGoForgot" type="button" class="btn btn-link p-0 text-decoration-none">
+                    Quên mật khẩu?
+                  </button>
+                </div>
+              </div>
+
+              <!-- FORGOT -->
+              <div id="forgotBox" class="box d-none">
+                <h5 class="mb-3">Quên mật khẩu</h5>
+
+                <div class="mb-3">
+                  <label class="form-label">Email</label>
+                  <input id="forgotEmail" class="form-control" placeholder="Nhập email để nhận token">
+                </div>
+
+                <button id="btnForgot" type="button" class="btn btn-outline-primary w-100">
+                  Gửi token
+                </button>
+
+                <div class="text-end mt-2">
+                  <button id="btnBackToLogin1" type="button" class="btn btn-link p-0 text-decoration-none">
+                    Quay về đăng nhập
+                  </button>
+                </div>
+              </div>
+
+              <!-- RESET -->
+              <div id="resetBox" class="box d-none">
+                <h5 class="mb-3">Đổi mật khẩu</h5>
+
+                <div class="mb-3">
+                  <label class="form-label">Token</label>
+                  <input id="resetToken" class="form-control" placeholder="Nhập token">
+                  <div class="form-text" id="tokenHint" style="display:none;"></div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Mật khẩu mới</label>
+                  <input id="resetNewPassword" type="password" class="form-control" placeholder="Mật khẩu mới">
+                </div>
+
+                <button id="btnReset" type="button" class="btn btn-success w-100">
+                  Đổi mật khẩu
+                </button>
+
+                <div class="text-end mt-2">
+                  <button id="btnBackToLogin2" type="button" class="btn btn-link p-0 text-decoration-none">
+                    Quay về đăng nhập
+                  </button>
+                </div>
+              </div>
+
+              <hr class="my-4" />
+              <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:1055;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+
+
+
 
     <div id="appFooter"></div>
   </div>
@@ -47,4 +141,5 @@
   <script src="assets/js/footer.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

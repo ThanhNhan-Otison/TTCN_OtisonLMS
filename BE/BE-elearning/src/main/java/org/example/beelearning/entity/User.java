@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.example.beelearning.entity.enums.Role;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -44,5 +45,13 @@ public class User extends BaseEntity{
     @Column(name = "reset_token_expire_at")
     private LocalDateTime resetTokenExpireAt;
 
+    @Column(name = "ngay_sinh")
+    private LocalDate ngaySinh;
+
+    @Column(name = "so_dien_thoai", length = 20)
+    private String soDienThoai;
+
+    @Column(name = "gioi_tinh")
+    private Boolean gioiTinh; // true = NAM, false = NU
 
 }

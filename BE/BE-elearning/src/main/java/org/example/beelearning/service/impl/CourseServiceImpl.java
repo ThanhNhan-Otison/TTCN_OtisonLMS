@@ -4,11 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.example.beelearning.dto.course.CourseRequest;
 import org.example.beelearning.dto.course.CourseResponse;
 import org.example.beelearning.entity.Course;
+import org.example.beelearning.entity.Enrollment;
 import org.example.beelearning.entity.User;
 import org.example.beelearning.entity.enums.CourseStatus;
 import org.example.beelearning.entity.enums.Role;
 import org.example.beelearning.exception.BusinessException;
 import org.example.beelearning.repository.CourseRepository;
+import org.example.beelearning.repository.EnrollmentRepository;
 import org.example.beelearning.repository.UserRepository;
 import org.example.beelearning.security.CustomUserDetails;
 import org.example.beelearning.service.CourseService;
@@ -22,6 +24,7 @@ import java.util.List;
 public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
+    private final EnrollmentRepository enrollmentRepository;
 
 @Override
 public CourseResponse createCourse(CourseRequest req) {
@@ -75,7 +78,20 @@ public CourseResponse createCourse(CourseRequest req) {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
         return toResponse(c);
     }
-//    @Override
+    @Override
+    public List<CourseResponse> getEnrolledCourses(Integer userId) {
+        // enrollmentRepo trả List<Enrollment>
+        List<Enrollment> enrollments = enrollmentRepository.findByStudent_UserId(userId);
+
+        // map sang course -> response
+        return enrollments.stream()
+                .map(Enrollment::getCourse)
+                .filter(c -> c.getStatus() == CourseStatus.publish) // nếu bạn chỉ muốn show published
+                .map(this::toResponse) // hàm map Course -> CourseResponse bạn đang có
+                .toList();
+    }
+
+    //    @Override
 //    public CourseResponse updateCourse(Integer id, CourseRequest req) {
 //        Course c = courseRepository.findById(id)
 //                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));

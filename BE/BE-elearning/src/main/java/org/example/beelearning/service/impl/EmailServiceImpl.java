@@ -24,4 +24,26 @@ public class EmailServiceImpl implements EmailService {
         );
         mailSender.send(message);
     }
+    @Override
+    public void sendGradeNotification(String toEmail,
+                                      String studentName,
+                                      String assignmentTitle,
+                                      Integer score,
+                                      String feedback) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject("Thông báo chấm điểm: " + assignmentTitle);
+
+        String fb = (feedback == null || feedback.isBlank()) ? "(Không có nhận xét)" : feedback;
+
+        message.setText(
+                "Chào " + (studentName == null ? "" : studentName) + ",\n\n" +
+                        "Bài tập: " + assignmentTitle + "\n" +
+                        "Điểm: " + score + "\n" +
+                        "Nhận xét: " + fb + "\n\n" +
+                        "BeeLearning"
+        );
+
+        mailSender.send(message);
+    }
 }

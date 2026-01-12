@@ -14,10 +14,14 @@
 <body>
 
   <div id="appNav"></div>
-  <div class="main-content">
+  <div class="main-content" style="
+  background-image: url('assets/img/bg2.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;">
     <div class="container py-4">
       <!-- ADMIN COURSE TABS -->
-      <div id="adminCourseTabs" class="mb-3 d-none">
+      <div id="adminCourseTabs" class="mb-3 d-none admin-tabs">
         <ul class="nav nav-tabs">
           <li class="nav-item">
             <button class="nav-link active" data-tab="all">Tất cả</button>
@@ -34,9 +38,13 @@
         </ul>
       </div>
       <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-        <h4 class="mb-0 me-auto">Danh sách khóa học</h4>
+        <h4 class="mb-0 me-auto" style="color: whitesmoke; font-weight: bold; font-size: xx-large;  text-shadow:
+    -0 0 0 black,
+    1px -0 0 black,
+    -0 0 0 black,
+    1px 0 0 black;">Danh sách khóa học</h4>
         <input id="q" class="form-control" style="max-width:280px" placeholder="Tìm theo tên...">
-        <select id="pageSize" class="form-select" style="max-width:150px">
+        <select id="pageSize" class="form-select" style="max-width:150px; ">
           <option value="6">6 / trang</option>
           <option value="9">9 / trang</option>
           <option value="12">12 / trang</option>
@@ -48,7 +56,8 @@
       <div class="row g-3" id="courseList"></div>
 
       <div class="d-flex justify-content-between align-items-center mt-3">
-        <div class="small-muted" id="meta"></div>
+        <div class="small-muted" id="meta" style="color: white
+        ;"></div>
         <div id="pager"></div>
       </div>
 

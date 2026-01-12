@@ -1,7 +1,3 @@
-const courseBrowsePager = document.getElementById("courseBrowsePager");
-const lessonBrowsePager = document.getElementById("lessonBrowsePager");
-const assignmentPager = document.getElementById("pager");
-
 // assets/js/assignments.js
 document.addEventListener("DOMContentLoaded", () => {
   // ===== DOM =====
@@ -11,9 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const courseDatalist = $("courseDatalist");
   const courseIdHidden = $("courseId");
 
-  const lessonWrap = $("lessonWrap");
-  const elLesson = $("lessonFilter");
-
   const btnCreate = $("btnCreateAssignment");
 
   // course browse
@@ -21,14 +14,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const courseBrowseList = $("courseBrowseList");
   const courseBrowseMeta = $("courseBrowseMeta");
 
-  // lesson browse
-  const lessonBrowse = $("lessonBrowse");
-  const lessonBrowseList = $("lessonBrowseList");
-  const lessonBrowseMeta = $("lessonBrowseMeta");
-
   // assignments
   const listEl = $("list");
   const metaEl = $("meta");
+  const assignmentPager = $("pager");
+
+  // back button
+  const btnBackCourses = $("btnBackCourses");
 
   // ===== STATE =====
   const state = {
@@ -39,22 +31,13 @@ document.addEventListener("DOMContentLoaded", () => {
     coursePage: 1,
     coursePageSize: 6,
 
-    allLessons: [],
-    lessonPage: 1,
-    lessonPageSize: 6,
-
     selectedCourseId: "",
-    selectedLessonId: "",
   };
 
   // ===== helpers =====
   const show = (el, yes) => el && el.classList.toggle("d-none", !yes);
   const setHTML = (el, html) => el && (el.innerHTML = html ?? "");
   const setText = (el, text) => el && (el.textContent = text ?? "");
-
-  function pickId(obj) {
-    return obj?.courseId ?? obj?.lessonId ?? obj?.assignmentId ?? obj?.id;
-  }
 
   function getName(obj, { idKeys, nameKeys, fallbackPrefix }) {
     const id = idKeys.map(k => obj?.[k]).find(v => v != null) ?? obj?.id ?? "";
@@ -65,16 +48,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const getCourse = (c) =>
     getName(c, { idKeys: ["courseId", "id"], nameKeys: ["courseName", "name"], fallbackPrefix: "Course" });
 
-  const getLesson = (l) =>
-    getName(l, { idKeys: ["lessonId", "id"], nameKeys: ["lessonName", "name"], fallbackPrefix: "Lesson" });
-
   function setSelectedCourse(id) {
     state.selectedCourseId = id ? String(id) : "";
     if (courseIdHidden) courseIdHidden.value = state.selectedCourseId;
-  }
-
-  function setSelectedLesson(id) {
-    state.selectedLessonId = id ? String(id) : "";
   }
 
   function clearAssignments() {
@@ -83,67 +59,165 @@ document.addEventListener("DOMContentLoaded", () => {
     renderAssignments();
   }
 
-  function resetLessonUI() {
-    state.allLessons = [];
-    state.lessonPage = 1;
-    setSelectedLesson("");
+  // ===== URL param helpers (giữ courseId khi back) =====
+  function setCourseParam(courseId) {
+    const url = new URL(location.href);
+    if (courseId) url.searchParams.set("courseId", String(courseId));
+    else url.searchParams.delete("courseId");
+    history.replaceState({}, "", url.toString());
+  }
 
-    if (elLesson) {
-      elLesson.innerHTML = `<option value="">-- Chọn bài học --</option>`;
-      elLesson.value = "";
-      elLesson.disabled = true;
-    }
-
-    show(lessonWrap, false);
-    setHTML(lessonBrowseList, "");
-    function clearAllPagers() {
-      if (courseBrowsePager) courseBrowsePager.innerHTML = "";
-      if (lessonBrowsePager) lessonBrowsePager.innerHTML = "";
-      if (assignmentPager) assignmentPager.innerHTML = "";
-    }
-
-    setText(lessonBrowseMeta, "");
-    show(lessonBrowse, false);
+  function getCourseIdFromUrl() {
+    return new URL(location.href).searchParams.get("courseId") || "";
   }
 
   // ===== Role: chỉ TEACHER/ADMIN thấy nút tạo =====
   (async () => {
-    try { if (typeof tryLoadMe === "function") await tryLoadMe(); } catch { }
+    try { if (typeof tryLoadMe === "function") await tryLoadMe(); } catch {}
     const role = String(localStorage.getItem("role") || "").toUpperCase().replace("ROLE_", "");
     if (btnCreate) btnCreate.style.display = (role === "TEACHER" || role === "ADMIN") ? "" : "none";
   })();
 
-  // ===== shared render for browse cards =====
-  function renderBrowse({
-    wrapEl,
-    listEl,
-    metaEl,
-    pagerId,
-    items,
-    page,
-    pageSize,
-    hideWhen,
-    cardHtml,
-    onPageChange,
-  }) {
-    if (!listEl) return;
+  // ===== concurrency helper =====
+  async function mapLimit(arr, limit, mapper) {
+    const ret = [];
+    let i = 0;
+    const workers = Array.from({ length: Math.min(limit, arr.length) }, async () => {
+      while (i < arr.length) {
+        const idx = i++;
+        ret[idx] = await mapper(arr[idx], idx);
+      }
+    });
+    await Promise.all(workers);
+    return ret;
+  }
 
-    if (hideWhen && hideWhen()) {
-      show(wrapEl, false);
-      return;
+  // ===== check course has any assignments =====
+  async function courseHasAssignments(courseId) {
+    try {
+      const lessons = await apiFetch(`/lessons/course/${courseId}`);
+      const ls = Array.isArray(lessons) ? lessons : [];
+      if (ls.length === 0) return false;
+
+      for (const l of ls) {
+        const lid = l.lessonId ?? l.id;
+        if (!lid) continue;
+        const asg = await apiFetch(`/assignments/lessons/${lid}`);
+        if (Array.isArray(asg) && asg.length > 0) return true;
+      }
+      return false;
+    } catch (e) {
+      console.warn("courseHasAssignments error", courseId, e);
+      return false;
+    }
+  }
+
+  // ====== FE-only: ẩn nút "Bài nộp" nếu USER đã nộp ======
+  function normalizeRole(r = "") {
+    return String(r).toUpperCase().replace("ROLE_", "");
+  }
+  function isUser() {
+    const role = normalizeRole(localStorage.getItem("role") || "");
+    return role === "USER" || role === "STUDENT";
+  }
+
+  let submittedSet = null; // Set<string> assignmentId đã nộp
+  async function ensureSubmittedSetLoaded() {
+    if (!isUser()) return null;
+    if (submittedSet) return submittedSet;
+
+    try {
+      const mySubs = await apiFetch(`/submissions/me`);
+      submittedSet = new Set((Array.isArray(mySubs) ? mySubs : []).map(s => String(s.assignmentId)));
+    } catch (e) {
+      console.warn("Không load được /submissions/me để ẩn nút Bài nộp:", e);
+      submittedSet = new Set(); // fallback
+    }
+    return submittedSet;
+  }
+
+  async function hideSubmitButtonsInRenderedCards() {
+    if (!isUser()) return;
+    const set = await ensureSubmittedSetLoaded();
+    if (!set || !listEl) return;
+
+    // chỉ scan trong khu vực list để nhanh
+    listEl.querySelectorAll("a[href*='submissions.html?assignmentId=']").forEach(a => {
+      const href = a.getAttribute("href") || "";
+      const m = href.match(/assignmentId=(\d+)/);
+      if (!m) return;
+
+      const aid = String(m[1]);
+      if (set.has(aid)) {
+        a.style.display = "none"; // ✅ ẩn nút "Bài nộp"
+      }
+    });
+  }
+
+  // ===== loaders =====
+  async function loadCourses() {
+    if (typeof tryLoadMe === "function" && !localStorage.getItem("role")) {
+      await tryLoadMe(true);
     }
 
-    const meta = paginate(items, page, pageSize);
-    if (metaEl) setText(metaEl, `Hiển thị ${meta.items.length}/${meta.total} (Trang ${meta.page}/${meta.totalPages})`);
+    const role = String(localStorage.getItem("role") || "")
+      .toUpperCase()
+      .replace("ROLE_", "");
 
-    setHTML(listEl, meta.items.map(cardHtml).join(""));
+    let endpoint = "/courses"; // admin/all
+    if (role === "USER") endpoint = "/courses/enrolled";
+    else if (role === "TEACHER") endpoint = "/courses/mine";
 
-    renderPager(pagerId, meta, (p) => {
-      onPageChange(p);
-      renderAll();
+    const data = await apiFetch(endpoint);
+    const all = Array.isArray(data) ? data : [];
+
+    // ✅ FILTER: chỉ giữ course có bài tập
+    const checks = await mapLimit(all, 4, async (c) => {
+      const cid = c.courseId ?? c.id;
+      if (!cid) return { ok: false, c };
+      const ok = await courseHasAssignments(cid);
+      return { ok, c };
     });
 
-    show(wrapEl, true);
+    state.allCourses = checks.filter(x => x.ok).map(x => x.c);
+
+    // datalist
+    if (courseDatalist) courseDatalist.innerHTML = "";
+    state.allCourses.forEach((c) => {
+      const { id, name } = getCourse(c);
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.dataset.id = id;
+      courseDatalist?.appendChild(opt);
+    });
+  }
+
+  async function loadAssignmentsByCourse(courseId) {
+    clearAssignments();
+    if (!courseId) return;
+
+    const lessons = await apiFetch(`/lessons/course/${courseId}`);
+    const ls = Array.isArray(lessons) ? lessons : [];
+
+    const allAssignments = [];
+    for (const l of ls) {
+      const lid = l.lessonId ?? l.id;
+      if (!lid) continue;
+
+      const asg = await apiFetch(`/assignments/lessons/${lid}`);
+      if (Array.isArray(asg) && asg.length) allAssignments.push(...asg);
+    }
+
+    // sort deadline desc (optional)
+    allAssignments.sort((a, b) => {
+      const da = a.deadline ? new Date(a.deadline).getTime() : 0;
+      const db = b.deadline ? new Date(b.deadline).getTime() : 0;
+      return db - da;
+    });
+
+    state.assignments = allAssignments;
+    state.assignmentPage = 1;
+    renderAssignments();
   }
 
   // ===== render courses browse =====
@@ -158,78 +232,36 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    renderBrowse({
-      wrapEl: courseBrowse,
-      listEl: courseBrowseList,
-      metaEl: courseBrowseMeta,
-      pagerId: "courseBrowsePager",
-      items: view,
-      page: state.coursePage,
-      pageSize: state.coursePageSize,
-      hideWhen: () => !!state.selectedCourseId,
-      cardHtml: (c) => {
-        const { id, name } = getCourse(c);
-        return `
-          <div class="col-md-4">
-            <div class="border rounded-3 p-2 h-100 d-flex align-items-center">
-              <div class="me-auto">
-                <div class="fw-semibold">${name}</div>
-                <div class="small-muted">ID: ${id}</div>
-              </div>
-              <button class="btn btn-outline-primary btn-sm" data-pick-course="${id}">Chọn</button>
+    if (!courseBrowseList) return;
+
+    const meta = paginate(view, state.coursePage, state.coursePageSize);
+    setText(courseBrowseMeta, `Hiển thị ${meta.items.length}/${meta.total} (Trang ${meta.page}/${meta.totalPages})`);
+
+    setHTML(courseBrowseList, meta.items.map((c) => {
+      const { id, name } = getCourse(c);
+      return `
+        <div class="col-md-4">
+          <div class="border rounded-3 p-2 h-100 d-flex align-items-center">
+            <div class="me-auto">
+              <div class="fw-semibold">${name}</div>
+              <div class="small-muted">ID: ${id}</div>
             </div>
+            <button class="btn btn-outline-primary btn-sm" data-pick-course="${id}">Chọn</button>
           </div>
-        `;
-      },
-      onPageChange: (p) => (state.coursePage = p),
-    });
-  }
+        </div>
+      `;
+    }).join(""));
 
-  // ===== fill lesson dropdown =====
-  function fillLessonDropdown() {
-    if (!elLesson) return;
-
-    elLesson.innerHTML = `<option value="">-- Chọn bài học --</option>`;
-    (state.allLessons || []).forEach(l => {
-      const { id, name } = getLesson(l);
-      const opt = document.createElement("option");
-      opt.value = String(id);
-      opt.textContent = name;
-      elLesson.appendChild(opt);
+    renderPager("courseBrowsePager", meta, (p) => {
+      state.coursePage = p;
+      renderCourseBrowse();
     });
 
-    elLesson.value = "";
-    elLesson.selectedIndex = 0;
-    elLesson.disabled = false;
-  }
+    show(courseBrowse, !state.selectedCourseId);
 
-  // ===== render lesson browse =====
-  function renderLessonBrowse() {
-    renderBrowse({
-      wrapEl: lessonBrowse,
-      listEl: lessonBrowseList,
-      metaEl: lessonBrowseMeta,
-      pagerId: "lessonBrowsePager",
-      items: state.allLessons,
-      page: state.lessonPage,
-      pageSize: state.lessonPageSize,
-      hideWhen: () => !state.selectedCourseId || !!state.selectedLessonId,
-      cardHtml: (l) => {
-        const { id, name } = getLesson(l);
-        return `
-          <div class="col-md-4">
-            <div class="border rounded-3 p-2 h-100 d-flex align-items-center">
-              <div class="me-auto">
-                <div class="fw-semibold">${name}</div>
-                <div class="small-muted">ID: ${id}</div>
-              </div>
-              <button class="btn btn-outline-primary btn-sm" data-pick-lesson="${id}">Chọn</button>
-            </div>
-          </div>
-        `;
-      },
-      onPageChange: (p) => (state.lessonPage = p),
-    });
+    if (meta.total === 0) {
+      setHTML(courseBrowseList, `<div class="col-12 small-muted">Không có khóa học nào có bài tập.</div>`);
+    }
   }
 
   // ===== assignments render =====
@@ -237,11 +269,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const q = ($("q")?.value || "").trim().toLowerCase();
     const ps = parseInt($("pageSize")?.value || "6", 10);
 
-    const filtered = state.assignments.filter(x => (x.title || "").toLowerCase().includes(q));
+    const filtered = (state.assignments || []).filter(x => (x.title || "").toLowerCase().includes(q));
     const meta = paginate(filtered, state.assignmentPage, ps);
 
     if (metaEl) metaEl.innerText = `Hiển thị ${meta.items.length}/${meta.total} • Trang ${meta.page}/${meta.totalPages}`;
     if (!listEl) return;
+
+    if (!state.selectedCourseId) {
+      setHTML(listEl, "");
+      if (assignmentPager) assignmentPager.innerHTML = "";
+      return;
+    }
+
+    if (meta.total === 0) {
+      setHTML(listEl, `<div class="col-12"><div class="alert alert-warning mb-0">Khóa học này chưa có bài tập.</div></div>`);
+      if (assignmentPager) assignmentPager.innerHTML = "";
+      return;
+    }
 
     setHTML(listEl, meta.items.map(a => {
       const id = a.assignmentId ?? a.id;
@@ -268,50 +312,9 @@ document.addEventListener("DOMContentLoaded", () => {
       state.assignmentPage = p;
       renderAssignments();
     });
-  }
 
-  // ===== loaders =====
-  async function loadCourses() {
-    const data = await apiFetch("/courses");
-    state.allCourses = Array.isArray(data) ? data : [];
-
-    // datalist
-    if (courseDatalist) courseDatalist.innerHTML = "";
-    state.allCourses.forEach(c => {
-      const { id, name } = getCourse(c);
-      const opt = document.createElement("option");
-      opt.value = name;
-      opt.dataset.id = id;
-      courseDatalist?.appendChild(opt);
-    });
-  }
-
-  async function loadLessons(courseId) {
-    state.allLessons = [];
-    state.lessonPage = 1;
-    setSelectedLesson("");
-    clearAssignments();
-
-    if (!courseId) {
-      resetLessonUI();
-      return;
-    }
-
-    const lessons = await apiFetch(`/lessons/course/${courseId}`);
-    state.allLessons = Array.isArray(lessons) ? lessons : [];
-
-    show(lessonWrap, true);
-    fillLessonDropdown();
-    renderLessonBrowse();
-  }
-
-  async function loadAssignments(lessonId) {
-    if (!lessonId) return clearAssignments();
-
-    const data = await apiFetch(`/assignments/lessons/${lessonId}`);
-    state.assignments = Array.isArray(data) ? data : [];
-    state.assignmentPage = 1;
-    renderAssignments();
+    // ✅ sau khi render xong, ẩn nút Bài nộp nếu đã nộp (FE-only)
+    hideSubmitButtonsInRenderedCards();
   }
 
   // ===== resolve course input =====
@@ -333,52 +336,54 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== actions =====
   async function pickCourse(courseId) {
     setSelectedCourse(courseId);
+    setCourseParam(courseId);
+
+    btnBackCourses?.classList.remove("d-none"); // ✅ show back
 
     const found = state.allCourses.find(c => String(c.courseId ?? c.id) === String(courseId));
     if (courseInput) courseInput.value = found ? getCourse(found).name : String(courseId);
 
     show(courseBrowse, false);
 
-    resetLessonUI();
-    await loadLessons(courseId);
+    // preload set 1 lần (để renderAssignments() gọi hide nhanh)
+    await ensureSubmittedSetLoaded();
 
-    renderLessonBrowse();
-  }
-
-  async function pickLesson(lessonId) {
-    setSelectedLesson(lessonId);
-    if (elLesson) elLesson.value = String(lessonId);
-
-    show(lessonBrowse, false);
-    await loadAssignments(lessonId);
+    await loadAssignmentsByCourse(courseId);
+    renderAssignments();
   }
 
   function resetToCourseBrowse() {
     setSelectedCourse("");
-    setSelectedLesson("");
+    setCourseParam("");
+
+    btnBackCourses?.classList.add("d-none"); // ✅ hide back
+
     if (courseInput) courseInput.value = "";
     if (courseIdHidden) courseIdHidden.value = "";
 
     clearAssignments();
-    resetLessonUI();
 
     state.coursePage = 1;
     renderCourseBrowse();
     show(courseBrowse, true);
   }
 
-  function renderAll() {
-    renderCourseBrowse();
-    renderLessonBrowse();
-  }
-
   // ===== init =====
   (async () => {
     try {
+      requireAuth("login.html");
       await loadCourses();
-      clearAssignments();
-      resetLessonUI();
 
+      // mặc định: ẩn nút back
+      btnBackCourses?.classList.add("d-none");
+
+      const cidFromUrl = getCourseIdFromUrl();
+      if (cidFromUrl) {
+        await pickCourse(cidFromUrl);
+        return;
+      }
+
+      clearAssignments();
       state.coursePage = 1;
       renderCourseBrowse();
     } catch (e) {
@@ -407,25 +412,6 @@ document.addEventListener("DOMContentLoaded", () => {
     await pickCourse(btn.dataset.pickCourse);
   });
 
-  lessonBrowse?.addEventListener("click", async (e) => {
-    const btn = e.target.closest("button[data-pick-lesson]");
-    if (!btn) return;
-    await pickLesson(btn.dataset.pickLesson);
-  });
-
-  elLesson?.addEventListener("change", async () => {
-    const lid = elLesson.value;
-
-    if (!lid) {
-      setSelectedLesson("");
-      clearAssignments();
-      renderLessonBrowse();
-      return;
-    }
-
-    await pickLesson(lid);
-  });
-
   $("q")?.addEventListener("input", () => {
     state.assignmentPage = 1;
     renderAssignments();
@@ -435,24 +421,9 @@ document.addEventListener("DOMContentLoaded", () => {
     state.assignmentPage = 1;
     renderAssignments();
   });
-  
+
+  btnBackCourses?.addEventListener("click", (e) => {
+    e.preventDefault();
+    resetToCourseBrowse();
+  });
 });
- (function(){
-    const pager = document.getElementById('pager');
-    const course = document.getElementById('courseBrowse');
-    const lesson = document.getElementById('lessonBrowse');
-
-    function updatePagerVisibility(){
-      const courseVisible = course && !course.classList.contains('d-none');
-      const lessonVisible = lesson && !lesson.classList.contains('d-none');
-      pager.style.display = (courseVisible || lessonVisible) ? 'none' : '';
-    }
-
-    // initial
-    updatePagerVisibility();
-
-    // observe class changes so visibility updates when your app shows/hides sections
-    const obs = new MutationObserver(updatePagerVisibility);
-    if (course) obs.observe(course, { attributes: true, attributeFilter: ['class'] });
-    if (lesson) obs.observe(lesson, { attributes: true, attributeFilter: ['class'] });
-  })();

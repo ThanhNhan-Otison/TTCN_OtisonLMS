@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.beelearning.dto.auth.*;
 import org.example.beelearning.entity.User;
 import org.example.beelearning.entity.enums.Role;
+import org.example.beelearning.exception.BusinessException;
 import org.example.beelearning.repository.UserRepository;
 import org.example.beelearning.security.CustomUserDetails;
 import org.example.beelearning.security.JwtService;
@@ -30,28 +31,60 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+//    @Override
+//    public Boolean addUser(RegisterRequest user) {
+//        Boolean checkUser = userRepository.existsByEmail(user.getEmail());
+//
+//        if (checkUser == true) {
+//                throw new RuntimeException("Email Da Ton Tai");
+//            }
+//        User newUser = new User();
+//        newUser.setEmail(user.getEmail());
+//        newUser.setPassword(passwordEncoder.encode(user.getPassword()));
+//        newUser.setFirstName(user.getFirstName());
+//
+//        if (user.getRole() != null) {
+//            newUser.setRole(user.getRole());
+//        } else {
+//            newUser.setRole(Role.USER); //mặc định là USER
+//        }
+//        newUser.setStatus(false);
+//        userRepository.save(newUser);
+//        log.info("New User {} has been saved", newUser.getEmail());
+//        return true;
+//    }
     @Override
     public Boolean addUser(RegisterRequest user) {
+
         Boolean checkUser = userRepository.existsByEmail(user.getEmail());
+        if (checkUser) {
+            throw new RuntimeException("Email Da Ton Tai");
+        }
 
-        if (checkUser == true) {
-                throw new RuntimeException("Email Da Ton Tai");
-            }
         User newUser = new User();
-        newUser.setEmail(user.getEmail());
+        newUser.setEmail(user.getEmail().trim());
         newUser.setPassword(passwordEncoder.encode(user.getPassword()));
-        newUser.setFirstName(user.getFirstName());
+        newUser.setFirstName(user.getFirstName().trim());
 
+        // role
         if (user.getRole() != null) {
             newUser.setRole(user.getRole());
         } else {
-            newUser.setRole(Role.USER); //mặc định là USER
+            newUser.setRole(Role.USER);
         }
+
+        // ===== NEW FIELDS =====
+        newUser.setNgaySinh(user.getNgaySinh());           // LocalDate
+        newUser.setSoDienThoai(user.getSoDienThoai());     // String
+        newUser.setGioiTinh(user.getGioiTinh());           // Boolean
+
         newUser.setStatus(false);
+
         userRepository.save(newUser);
         log.info("New User {} has been saved", newUser.getEmail());
         return true;
     }
+
 
     @Override
     public List<User> getUser() {
@@ -101,7 +134,9 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         // Link FE reset mật khẩu – bạn chỉnh lại theo app của bạn
-        String resetLink = "http://localhost:5500/reset-password.html?token=" + token;
+//        String resetLink = "http://localhost:5500/otisonlms/login.html?token=" + token;
+        String resetLink = "http://localhost:5500/otisonlms/login.html?resetToken=" + token;
+
 
         emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
         log.info("Đã gửi email reset password cho {}", user.getEmail());
@@ -123,5 +158,56 @@ public class UserServiceImpl implements UserService {
         user.setResetTokenExpireAt(null);
 
         userRepository.save(user);
+    }
+    @Override
+    public User updateMe(Integer userId, UpdateMeRequest req) {
+        User u = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng"));
+
+        // ✅ update fields
+        if (req.getFullName() != null) u.setFirstName(req.getFullName().trim());
+
+        if (req.getEmail() != null) {
+            String newEmail = req.getEmail().trim().toLowerCase();
+            // check trùng email (nếu đổi)
+            if (!newEmail.equalsIgnoreCase(u.getEmail())) {
+                if (userRepository.existsByEmail(newEmail)) {
+                    throw new BusinessException("Email đã tồn tại");
+                }
+                u.setEmail(newEmail);
+            }
+        }
+
+        if (req.getNgaySinh() != null) u.setNgaySinh(req.getNgaySinh());
+        if (req.getSoDienThoai() != null) u.setSoDienThoai(req.getSoDienThoai().trim());
+        if (req.getGioiTinh() != null) u.setGioiTinh(req.getGioiTinh());
+
+        // nếu entity có updatedDate
+        try { u.setUpdatedDate(LocalDateTime.now()); } catch (Exception ignored) {}
+
+        return userRepository.save(u);
+    }
+
+    @Override
+    public void changePassword(Integer userId, String oldPassword, String newPassword) {
+        if (oldPassword == null || oldPassword.isBlank())
+            throw new BusinessException("Vui lòng nhập mật khẩu cũ");
+        if (newPassword == null || newPassword.isBlank())
+            throw new BusinessException("Vui lòng nhập mật khẩu mới");
+        if (newPassword.length() < 6)
+            throw new BusinessException("Mật khẩu mới tối thiểu 6 ký tự");
+
+        User u = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng"));
+
+        // field mật khẩu của bạn đang là mk (u.getMk())
+        if (!passwordEncoder.matches(oldPassword, u.getPassword())) {
+            throw new BusinessException("Mật khẩu cũ không đúng");
+        }
+
+        u.setPassword(passwordEncoder.encode(newPassword));
+
+        try { u.setUpdatedDate(LocalDateTime.now()); } catch (Exception ignored) {}
+        userRepository.save(u);
     }
 }

@@ -41,15 +41,26 @@ public class SubmissionController {
     }
 
     // GV chấm điểm
+//    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
+//    @PostMapping("/{submissionId}/grade")
+//    public SubmissionResponse grade(
+//            @PathVariable Integer submissionId,
+//            @RequestParam Integer score,
+//            @RequestParam(required = false) String feedback
+//    ) {
+//        return submissionService.gradeSubmission(submissionId, score, feedback);
+//    }
     @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
     @PostMapping("/{submissionId}/grade")
     public SubmissionResponse grade(
             @PathVariable Integer submissionId,
             @RequestParam Integer score,
-            @RequestParam(required = false) String feedback
+            @RequestParam(required = false) String feedback,
+            @RequestParam(defaultValue = "false") boolean notify
     ) {
-        return submissionService.gradeSubmission(submissionId, score, feedback);
+        return submissionService.gradeSubmission(submissionId, score, feedback, notify);
     }
+
 
     @PreAuthorize("hasAnyRole('USER','STUDENT')")
     @GetMapping("/me")

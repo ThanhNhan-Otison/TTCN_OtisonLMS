@@ -11,66 +11,149 @@
 </head>
 
 <body>
-  <div class="page-wrapper">
-    <div id="appNav"></div>
+<div class="page-wrapper">
+  <div id="appNav"></div>
 
-    <div class="main-content">
-      <main class="container py-5">
-        <div class="row justify-content-center">
-          <div class="col-md-7 col-lg-6">
-            <div class="card shadow-soft p-4">
-              <h2 class="mb-4 text-center">Thông tin cá nhân</h2>
-              <div id="userInfoBox" class="mb-3">
-                <div class="text-center text-muted">Đang tải thông tin...</div>
-              </div>
-              <div class="d-flex justify-content-center">
-                <a href="home.html" class="btn btn-secondary">Quay lại trang chủ</a>
-              </div>
+  <div class="main-content" style="
+    background-image: url('assets/img/bg2.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;">
+
+    <main class="container py-5">
+      <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+          <div class="card shadow-soft p-4">
+            <div class="d-flex align-items-center mb-3">
+              <h2 class="mb-0 me-auto text-center w-100">Thông tin cá nhân</h2>
+            </div>
+
+            <div id="userInfoBox" class="mb-3">
+              <div class="text-center text-muted">Đang tải thông tin...</div>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-center">
+              <button class="btn btn-primary" id="btnEditProfile">Chỉnh sửa</button>
+              <a href="home.html" class="btn btn-secondary">Quay lại trang chủ</a>
             </div>
           </div>
         </div>
-      </main>
-    </div>
-    <div id="appFooter"></div>
+      </div>
+    </main>
   </div>
 
- 
-  <script src="assets/js/api.js"></script>
- <script src="assets/js/auth.js"></script>
-   <script src="assets/js/nav.js"></script>
-     <script>requireAuth();</script>
-     
-  <script src="assets/js/info.js"></script>
-  <script src="assets/js/footer.js"></script>
-  <!-- <script>
-    async function loadInfo() {
-      // nếu chưa có userInfo thì gọi BE lấy
-      if (!localStorage.getItem("userInfo")) {
-        await tryLoadMe();
-      }
+  <div id="appFooter"></div>
+</div>
 
-      let info = localStorage.getItem('userInfo');
-      if (!info) {
-        document.getElementById('userInfoBox').innerHTML =
-          '<div class="alert alert-warning">Chưa có thông tin. Vui lòng đăng nhập lại.</div>';
-        return;
-      }
+<!-- ✅ ONE MODAL ONLY -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
 
-      info = JSON.parse(info);
+      <div class="modal-header">
+        <h5 class="modal-title">Tài khoản</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
 
-      document.getElementById('userInfoBox').innerHTML = `
-    <ul class="list-group mb-3">
-      <li class="list-group-item"><strong>Họ tên:</strong> ${info.fullName || ''}</li>
-      <li class="list-group-item"><strong>Email:</strong> ${info.email || ''}</li>
-      <li class="list-group-item"><strong>Vai trò:</strong> ${info.role || ''}</li>
-      <li class="list-group-item"><strong>Mã người dùng:</strong> ${info.id || ''}</li>
-    </ul>
-  `;
-    }
+      <div class="modal-body">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs" id="profileTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab-info" data-bs-toggle="tab" data-bs-target="#pane-info"
+              type="button" role="tab">Chỉnh sửa thông tin</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-pass" data-bs-toggle="tab" data-bs-target="#pane-pass"
+              type="button" role="tab">Đổi mật khẩu</button>
+          </li>
+        </ul>
 
-    loadInfo();
-  </script> -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <div class="tab-content pt-3">
+
+          <!-- TAB 1: PROFILE -->
+          <div class="tab-pane fade show active" id="pane-info" role="tabpanel">
+            <form id="profileForm">
+              <div class="mb-3">
+                <label class="form-label">Họ tên</label>
+                <input class="form-control" id="pfFullName" required>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input class="form-control" id="pfEmail" type="email" required>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Ngày sinh</label>
+                <input class="form-control" id="pfNgaySinh" type="date">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Số điện thoại</label>
+                <input class="form-control" id="pfSoDienThoai">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Giới tính</label>
+                <select class="form-select" id="pfGioiTinh">
+                  <option value="">-- Chọn --</option>
+                  <option value="true">Nam</option>
+                  <option value="false">Nữ</option>
+                </select>
+              </div>
+
+              <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-primary" id="pfSaveBtn">Lưu</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- TAB 2: CHANGE PASSWORD -->
+          <div class="tab-pane fade" id="pane-pass" role="tabpanel">
+            <form id="passwordForm">
+              <div class="mb-3">
+                <label class="form-label">Mật khẩu cũ</label>
+                <input class="form-control" id="pwOld" type="password" required>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Mật khẩu mới</label>
+                <input class="form-control" id="pwNew" type="password" minlength="6" required>
+                <div class="form-text">Tối thiểu 6 ký tự</div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Nhập lại mật khẩu mới</label>
+                <input class="form-control" id="pwNew2" type="password" minlength="6" required>
+              </div>
+
+              <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-primary" id="pwSaveBtn">Đổi mật khẩu</button>
+              </div>
+            </form>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/nav.js"></script>
+<script>requireAuth();</script>
+
+<script src="assets/js/info.js"></script>
+<script src="assets/js/footer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
 </body>
 
 </html>

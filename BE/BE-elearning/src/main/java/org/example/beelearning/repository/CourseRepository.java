@@ -45,4 +45,16 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
 """)
     long countStudentsInCourse(@Param("cid") Integer courseId);
 
+    // TEACHER: lấy các khóa mình dạy
+//    List<Course> findByTeacher_UserId(Integer userId);
+
+    // PUBLIC / ADMIN
+//    List<Course> findByStatus(CourseStatus status);
+
+//    @Query("""
+//        select c
+//        from Course c
+//        where c.teacher.userId = :tid
+//    """)
+//    List<Course> findAllByTeacherId(@Param("tid") Integer teacherId);
 }

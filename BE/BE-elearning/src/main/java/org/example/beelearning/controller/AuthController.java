@@ -10,7 +10,8 @@ import org.example.beelearning.service.UserService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -56,7 +57,41 @@ public class AuthController {
                 u.getEmail(),
                 u.getFirstName(),
                 u.getRole(),
-                u.isStatus()
+                u.isStatus(),
+                u.getNgaySinh(),      // ✅ đúng vị trí LocalDate
+                u.getSoDienThoai(),   // ✅ đúng
+                u.getGioiTinh()
         );
+    }
+    // ✅ UPDATE PROFILE (sửa fullName + email + info)
+    @PutMapping("/me")
+    public UserMeResponse updateMe(@RequestBody UpdateMeRequest req,
+                                   Authentication authentication) {
+        CustomUserDetails cud = (CustomUserDetails) authentication.getPrincipal();
+        User current = cud.getUser();
+
+        User saved = userService.updateMe(current.getUserId(), req);
+
+        return new UserMeResponse(
+                saved.getUserId(),
+                saved.getEmail(),
+                saved.getFirstName(),
+                saved.getRole(),
+                saved.isStatus(),
+                saved.getNgaySinh(),
+                saved.getSoDienThoai(),
+                saved.getGioiTinh()
+        );
+    }
+
+    // ✅ CHANGE PASSWORD
+    @PutMapping("/change-password")
+    public String changePassword(@RequestBody ChangePasswordRequest req,
+                                 Authentication authentication) {
+        CustomUserDetails cud = (CustomUserDetails) authentication.getPrincipal();
+        User current = cud.getUser();
+
+        userService.changePassword(current.getUserId(), req.getOldPassword(), req.getNewPassword());
+        return "Đổi mật khẩu thành công!";
     }
 }

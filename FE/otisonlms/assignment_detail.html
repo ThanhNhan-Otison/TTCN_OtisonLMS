@@ -11,62 +11,85 @@
 </head>
 
 <body>
-
-
   <div class="page-wrapper">
     <div id="appNav"></div>
 
-    <div class="main-content">
+    <div class="main-content" style="
+      background-image: url('assets/img/bg2.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;">
+
       <div class="container py-4">
-        <div class="card shadow-soft p-4 mb-3" id="infoBox" style="display:none;">
-          <h4 id="aTitle" class="mb-2">...</h4>
-          <div class="small-muted mb-2">
-            Hạn nộp: <span id="aDue">-</span> • Điểm tối đa: <span id="aMax">-</span>
+        <div class="row justify-content-center">
+          <div class="col-lg-8 col-md-10 col-sm-12">
+
+            <!-- INFO -->
+            <div class="card shadow-soft p-4 mb-3" id="infoBox" style="display:none;">
+              <h4 id="aTitle" class="mb-2">...</h4>
+              <div class="small-muted mb-2">
+                Hạn nộp: <span id="aDue">-</span> • Điểm tối đa: <span id="aMax">-</span>
+              </div>
+              <div id="aDesc" class="mt-2"></div>
+              <div class="small-muted mt-2">
+                Khóa học: <span id="aCourse">-</span> • Bài học: <span id="aLesson">-</span>
+              </div>
+            </div>
+
+            <!-- SUBMIT (USER) -->
+            <div class="card shadow-soft p-4 mb-3" id="submitBox" style="display:none;">
+              <h5 class="mb-2">Nộp bài</h5>
+              <div class="small-muted">Bạn có thể nộp link/nội dung hoặc file.</div>
+
+              <!-- ✅ THÊM INPUT NỘI DUNG/LINK -->
+              <input id="answer" class="form-control mt-2" placeholder="Link bài làm / nội dung...">
+              <div class="form-text">Ví dụ: link Google Drive, GitHub, hoặc nội dung tóm tắt.</div>
+
+              <input id="file" type="file" class="form-control mt-2">
+
+              <button id="btnSubmit" class="btn btn-primary mt-3 w-100">Nộp bài</button>
+
+              <div class="small-muted mt-2" id="submitHint"></div>
+            </div>
+
+            <!-- ✅ THÔNG BÁO ĐÃ NỘP (USER) -->
+            <div class="card shadow-soft p-4 mb-3" id="submittedBox" style="display:none;">
+              <h5 class="mb-2">Bạn đã nộp bài rồi</h5>
+              <div class="small-muted mb-3">
+                Bạn không thể nộp lại (FE-only). Nếu cần nộp lại, hãy liên hệ giảng viên.
+              </div>
+              <a class="btn btn-outline-primary w-100" id="btnViewMySubmission" href="#">
+                Xem bài nộp của tôi
+              </a>
+            </div>
+
+            <!-- CREATE (TEACHER / ADMIN) -->
+            <div class="card shadow-soft p-4" id="createBox" style="display:none;">
+              <h5>Tạo/Sửa bài tập (Teacher/Admin)</h5>
+
+              <input id="cTitle" class="form-control mt-2" placeholder="Tiêu đề">
+              <textarea id="cDesc" class="form-control mt-2" rows="3" placeholder="Mô tả"></textarea>
+              <input id="cDue" type="date" class="form-control mt-2">
+              <input id="cMaxScore" type="number" min="0" class="form-control mt-2" placeholder="Điểm tối đa">
+
+              <select id="cCourseId" class="form-select mt-2">
+                <option value="">-- Chọn khóa học --</option>
+              </select>
+
+              <select id="cLessonId" class="form-select mt-2" disabled>
+                <option value="">-- Chọn bài học --</option>
+              </select>
+
+              <button id="btnCreate" class="btn btn-success mt-3 w-100">Lưu</button>
+            </div>
+
+            <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:1055;"></div>
+
           </div>
-          <div id="aDesc" class="mt-2"></div>
-          <div class="small-muted mt-2">
-            Khóa học: <span id="aCourse">-</span> • Bài học: <span id="aLesson">-</span>
-          </div>
-        </div>
-
-        <!-- ✅ Nộp bài tập (USER) -->
-        <div class="card shadow-soft p-4 mb-3" id="submitBox" style="display:none;">
-          <h5 class="mb-2">Nộp bài</h5>
-          <div class="small-muted">Bạn có thể nộp link/nội dung hoặc file.</div>
-
-          <input id="answer" class="form-control mt-2" placeholder="Link bài làm / nội dung...">
-          <input id="file" type="file" class="form-control mt-2">
-
-          <button id="btnSubmit" class="btn btn-primary mt-3 w-100">Nộp bài</button>
-        </div>
-
-        <!-- ✅ Box Teacher/Admin (bạn đang có) -->
-        <div class="card shadow-soft p-4" id="createBox" style="display:none;">
-          <h5>Tạo/Sửa bài tập (Teacher/Admin)</h5>
-
-          <input id="cTitle" class="form-control mt-2" placeholder="Tiêu đề">
-
-          <textarea id="cDesc" class="form-control mt-2" rows="3" placeholder="Mô tả"></textarea>
-
-          <input id="cDue" type="date" class="form-control mt-2">
-
-          <!-- ✅ Điểm tối đa -->
-          <input id="cMaxScore" type="number" min="0" class="form-control mt-2" placeholder="Điểm tối đa">
-
-          <!-- ✅ Chọn khóa học -->
-          <select id="cCourseId" class="form-select mt-2">
-            <option value="">-- Chọn khóa học --</option>
-          </select>
-
-          <!-- ✅ Chọn bài học (lấy theo khóa học) -->
-          <select id="cLessonId" class="form-select mt-2" disabled>
-            <option value="">-- Chọn bài học --</option>
-          </select>
-
-
-          <button id="btnCreate" class="btn btn-success mt-3 w-100">Lưu</button>
         </div>
       </div>
+
+      <br>
     </div>
 
     <div id="appFooter"></div>
@@ -74,9 +97,12 @@
 
   <script src="assets/js/api.js"></script>
   <script src="assets/js/auth.js"></script>
-  <script src="assets/js/nav.js"></script>
   <script src="assets/js/ui.js"></script>
+  <script src="assets/js/nav.js"></script>
+  <script>requireAuth();</script>
+
   <script src="assets/js/assignment_detail.js"></script>
+
   <script src="assets/js/footer.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

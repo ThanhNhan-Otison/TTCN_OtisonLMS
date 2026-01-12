@@ -23,6 +23,7 @@
   }
 
   function syncButtons() {
+
     const dashboardBtn = document.getElementById("dashboardBtn");
     const userInfoBtn = document.getElementById("userInfoBtn");
     const registerBtn = document.getElementById("registerBtn");
@@ -50,7 +51,25 @@
 
     //connect button 
     const connectBtn = document.getElementById("connectBtn");
-    if (connectBtn) connectBtn.classList.toggle("d-none", !(authed && role==="USER"));
+    if (connectBtn) connectBtn.classList.toggle("d-none", !(authed && role === "USER"));
+  }
+  function setActiveNavLink() {
+    const cur = location.pathname.split("/").pop().toLowerCase() || "home.html";
+
+    // bỏ active tất cả
+    document.querySelectorAll(".navbar .nav-link").forEach(a => {
+      a.classList.remove("active");
+      a.removeAttribute("aria-current");
+    });
+
+    // tìm link khớp với trang hiện tại
+    const match = Array.from(document.querySelectorAll(".navbar .nav-link"))
+      .find(a => (a.getAttribute("href") || "").toLowerCase() === cur);
+
+    if (match) {
+      match.classList.add("active");
+      match.setAttribute("aria-current", "page");
+    }
   }
 
   async function setupNavHandlers() {
@@ -60,6 +79,7 @@
     }
 
     syncButtons();
+    setActiveNavLink();
 
     const navAuthBtn = document.getElementById("navAuthBtn");
     const userInfoBtn = document.getElementById("userInfoBtn");

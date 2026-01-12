@@ -17,5 +17,6 @@ public interface UserService {
 
     void resetPassword(ResetPasswordRequest request);
 //    AuthResponse login(User user, String rawPassword) ;
-
+User updateMe(Integer userId, UpdateMeRequest req);
+    void changePassword(Integer userId, String oldPassword, String newPassword);
 }

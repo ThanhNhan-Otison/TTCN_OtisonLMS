@@ -66,7 +66,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     @Override
     public List<EnrollmentResponse> myEnrollments() {
         User student = getCurrentUser();
-        return enrollmentRepository.findBystudent_userId(student.getUserId())
+        return enrollmentRepository.findByStudent_UserId(student.getUserId())
                 .stream().map(this::toResponse).toList();
     }
     @Override
@@ -77,7 +77,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
     @Override
     public List<EnrollmentResponse> getCourseofStudent(Integer studentId) {
-        return enrollmentRepository.findBystudent_userId(studentId)
+        return enrollmentRepository.findByStudent_UserId(studentId)
                 .stream().map(this::toResponse).toList();
     }
 

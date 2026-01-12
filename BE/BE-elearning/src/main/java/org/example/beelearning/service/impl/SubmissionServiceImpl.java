@@ -14,6 +14,7 @@ import org.example.beelearning.repository.EnrollmentRepository;
 import org.example.beelearning.repository.SubmissionRepository;
 import org.example.beelearning.security.CustomUserDetails;
 import org.example.beelearning.security.SecurityUtil;
+import org.example.beelearning.service.EmailService;
 import org.example.beelearning.service.SubmissionService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final AssignmentRepository assignmentRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final FileStrorageService fileStrorageService;
+    private final EmailService emailService;
 
 
     private void ensureTeacherOwnsAssignmentOrAdmin(User currentUser, Integer assignmentId) {
@@ -196,33 +198,75 @@ public class SubmissionServiceImpl implements SubmissionService {
 
 
 
-    @Override
-    public SubmissionResponse gradeSubmission(Integer submissionId, Integer score, String feedback) {
-        // Chỉ TEACHER / ADMIN
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        var principal = (CustomUserDetails) auth.getPrincipal();
-        var currentUser = principal.getUser();
+//    @Override
+//    public SubmissionResponse gradeSubmission(Integer submissionId, Integer score, String feedback) {
+//        // Chỉ TEACHER / ADMIN
+//        var auth = SecurityContextHolder.getContext().getAuthentication();
+//        var principal = (CustomUserDetails) auth.getPrincipal();
+//        var currentUser = principal.getUser();
+//
+//        if (currentUser.getRole() != Role.TEACHER && currentUser.getRole() != Role.ADMIN) {
+//            throw new BusinessException("Chỉ giảng viên hoặc admin mới được chấm điểm");
+//        }
+//
+//        Submission s = submissionRepository.findById(submissionId)
+//                .orElseThrow(() -> new BusinessException("Không tìm thấy bài nộp"));
+//
+//
+//        Integer assignmentId = s.getAssignmentId().getAssignmentId();
+//        ensureTeacherOwnsAssignmentOrAdmin(currentUser, assignmentId);
+//
+//
+//        // có thể check thêm maxScore, deadline... tùy bạn
+//        s.setScore(score);
+//        s.setFeedback(feedback);
+//
+//        submissionRepository.save(s);
+//        return toResponse(s);
+//    }
+//
+@Override
+public SubmissionResponse gradeSubmission(Integer submissionId, Integer score, String feedback, boolean notify) {
+    var auth = SecurityContextHolder.getContext().getAuthentication();
+    var principal = (CustomUserDetails) auth.getPrincipal();
+    var currentUser = principal.getUser();
 
-        if (currentUser.getRole() != Role.TEACHER && currentUser.getRole() != Role.ADMIN) {
-            throw new BusinessException("Chỉ giảng viên hoặc admin mới được chấm điểm");
-        }
-
-        Submission s = submissionRepository.findById(submissionId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy bài nộp"));
-
-
-        Integer assignmentId = s.getAssignmentId().getAssignmentId();
-        ensureTeacherOwnsAssignmentOrAdmin(currentUser, assignmentId);
-
-
-        // có thể check thêm maxScore, deadline... tùy bạn
-        s.setScore(score);
-        s.setFeedback(feedback);
-
-        submissionRepository.save(s);
-        return toResponse(s);
+    if (currentUser.getRole() != Role.TEACHER && currentUser.getRole() != Role.ADMIN) {
+        throw new BusinessException("Chỉ giảng viên hoặc admin mới được chấm điểm");
     }
 
+    Submission s = submissionRepository.findById(submissionId)
+            .orElseThrow(() -> new BusinessException("Không tìm thấy bài nộp"));
+
+    Integer assignmentId = s.getAssignmentId().getAssignmentId();
+    ensureTeacherOwnsAssignmentOrAdmin(currentUser, assignmentId);
+
+    s.setScore(score);
+    s.setFeedback(feedback);
+    submissionRepository.save(s);
+
+    // ===== Gửi mail nếu notify=true =====
+    if (notify) {
+        User student = s.getStudentId();
+        Assignment a = s.getAssignmentId();
+
+        String toEmail = student.getEmail();
+        String studentName = student.getFirstName(); // hoặc fullName tùy bạn
+        String assignmentTitle = a.getTitle();
+
+        if (toEmail != null && !toEmail.isBlank()) {
+            emailService.sendGradeNotification(
+                    toEmail,
+                    studentName,
+                    assignmentTitle,
+                    score,
+                    feedback
+            );
+        }
+    }
+
+    return toResponse(s);
+}
 
     private SubmissionResponse toResponse(Submission s) {
         return SubmissionResponse.builder()

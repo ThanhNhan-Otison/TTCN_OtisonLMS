@@ -12,9 +12,17 @@ import java.util.Map;
 public interface SubmissionService {
     SubmissionResponse submit(Integer assignmentId, String content, MultipartFile file);
     List<SubmissionResponse> getSubmissionsOfAssignment(Integer assignmentId);   // cho GV xem
-    SubmissionResponse gradeSubmission(Integer submissionId, Integer score, String feedback);
+//    SubmissionResponse gradeSubmission(Integer submissionId, Integer score, String feedback);
     List<SubmissionResponse> getMySubmissions();
     SubmissionStatsResponse getStatsOfAssignment(Integer assignmentId);
     List<SubmissionTeacherResponse> getSubmissionsForMyCourses();
     Map<String, Long> getTeacherStats();
+    SubmissionResponse gradeSubmission(
+            Integer submissionId,
+            Integer score,
+            String feedback,
+            boolean notify
+    );
+
+
 }

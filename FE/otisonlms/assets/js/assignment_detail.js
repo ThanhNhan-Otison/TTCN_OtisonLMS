@@ -51,8 +51,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function ensureMe() {
     if (localStorage.getItem("token") && !localStorage.getItem("role")) {
-      await tryLoadMe();
+      if (typeof tryLoadMe === "function") await tryLoadMe();
     }
+  }
+
+  // ✅ FE-only: check đã nộp bài hay chưa
+  async function hasSubmitted(aid) {
+    if (!aid) return false;
+    if (!isUser()) return false;
+
+    try {
+      const mySubs = await apiFetch(`/submissions/me`);
+      return Array.isArray(mySubs) && mySubs.some(s => String(s.assignmentId) === String(aid));
+    } catch (e) {
+      console.warn("hasSubmitted error:", e);
+      // lỗi thì không khóa nhầm
+      return false;
+    }
+  }
+
+  // ✅ Quyết định ẩn/hiện form nộp bài
+  async function updateSubmitBoxVisibility() {
+    if (!submitBox) return;
+
+    // teacher/admin không có form nộp
+    if (!isUser()) {
+      show(submitBox, false);
+      return;
+    }
+
+    // nếu không có id (create mode) thì không nộp được
+    if (!id) {
+      show(submitBox, false);
+      return;
+    }
+
+    const submitted = await hasSubmitted(id);
+    show(submitBox, !submitted); // đã nộp => ẩn
   }
 
   // ===== extractors =====
@@ -97,7 +132,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!key) return null;
     if (lessonCache.has(key)) return lessonCache.get(key);
 
-    // ⚠️ nếu BE bạn không có /lessons/{id} thì sửa endpoint ở đây
     const lesson = await apiFetch(`/lessons/${key}`);
     lessonCache.set(key, lesson);
     return lesson;
@@ -108,7 +142,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!key) return null;
     if (courseCache.has(key)) return courseCache.get(key);
 
-    // /courses/{id} thường có
     const course = await apiFetch(`/courses/${key}`);
     courseCache.set(key, course);
     return course;
@@ -117,7 +150,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== UI: show boxes by role =====
   function showByRole() {
     show(infoBox, true);
-    show(submitBox, isUser());
+
+    // ✅ IMPORTANT: KHÔNG bật submitBox ở đây nữa
+    show(submitBox, false);
+
     show(createBox, isTeacher());
   }
 
@@ -207,7 +243,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const a = await apiFetch(`/assignments/${id}`);
 
-    // info box
     setText(aTitle, a.title ?? a.assignmentName ?? "Bài tập");
     setText(aDesc, a.description ?? a.moTa ?? "");
     setText(aDue, fmtDate(a.deadline ?? a.dueDate));
@@ -227,7 +262,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (cMaxScore && ms !== null && ms !== undefined) cMaxScore.value = ms;
 
       if (isEdit()) {
-        // edit: khóa course/lesson
         if (cCourseId) {
           cCourseId.innerHTML = `<option value="">(Khoá học: xem ở thông tin phía trên)</option>`;
           cCourseId.disabled = true;
@@ -249,6 +283,10 @@ document.addEventListener("DOMContentLoaded", () => {
   async function submitAssignment() {
     if (!id) throw new Error("Bài tập chưa có ID để nộp.");
 
+    // ✅ chặn FE-only: đã nộp rồi thì không nộp
+    const submitted = await hasSubmitted(id);
+    if (submitted) throw new Error("Bạn đã nộp bài rồi.");
+
     const content = (answer?.value || "").trim();
     const file = fileInput?.files?.[0] || null;
 
@@ -264,6 +302,9 @@ document.addEventListener("DOMContentLoaded", () => {
     toast?.("Nộp bài thành công", "success");
     if (answer) answer.value = "";
     if (fileInput) fileInput.value = "";
+
+    // ✅ cập nhật UI sau khi nộp
+    await updateSubmitBoxVisibility();
   }
 
   // ===== create/update =====
@@ -325,6 +366,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const { lessonId } = await loadAssignmentDetail();
+
+      // ✅ Sau khi load detail xong thì mới check submitted để ẩn form
+      await updateSubmitBoxVisibility();
 
       btnSubmit?.addEventListener("click", async () => {
         if (!isUser()) return;

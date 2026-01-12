@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
   (async () => {
     try {
       // ✅ CHUẨN HÓA: không cần requireAuth inline trong HTML nữa
-      requireAuth("login.html");
+      // requireAuth("login.html");
 
       // ✅ đảm bảo có userInfo/role (nhất là trường hợp token có nhưng role chưa có)
       await tryLoadMe();

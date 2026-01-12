@@ -1,15 +1,12 @@
 // assets/js/submissions.js
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener("DOMContentLoaded", function () {
   const assignmentId = qs("assignmentId");
 
-  // ====== FILE URL HELPERS (FIX Cannot GET /submissions/...) ======
+  // ====== FILE URL HELPERS ======
   function getApiOrigin() {
-    // Nếu api.js có window.API_BASE = "http://localhost:8080/api/v1"
     const base = window.API_BASE || "http://localhost:8080/api/v1";
     try {
-      // base có thể là "/api/v1" hoặc full url
       if (base.startsWith("http")) return new URL(base).origin;
-      // nếu base là relative thì fallback localhost:8080
       return "http://localhost:8080";
     } catch {
       return "http://localhost:8080";
@@ -18,10 +15,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function buildFileUrl(fileUrl) {
     if (!fileUrl) return "";
-    if (/^https?:\/\//i.test(fileUrl)) return fileUrl; // đã là full url
-    // fileUrl từ BE dạng "/submissions/xxx.pdf"
+    if (/^https?:\/\//i.test(fileUrl)) return fileUrl;
     const origin = getApiOrigin();
-    return origin + (fileUrl.startsWith("/") ? fileUrl : ("/" + fileUrl));
+    return origin + (fileUrl.startsWith("/") ? fileUrl : "/" + fileUrl);
   }
 
   // ====== ROLE HELPERS ======
@@ -43,13 +39,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // ====== RENDER ======
+  // ====== RENDER (TEACHER) ======
   function renderListTeacher(data) {
     const ul = document.getElementById("list");
-    if (!ul) {
-      console.error("Không tìm thấy #list trong HTML");
-      return;
-    }
+    if (!ul) return console.error("Không tìm thấy #list");
 
     ul.innerHTML = "";
     if (!data || data.length === 0) {
@@ -57,8 +50,13 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    data.forEach(s => {
-      ul.insertAdjacentHTML("beforeend", `
+    data.forEach((s) => {
+      const fileAbs = s.fileUrl ? buildFileUrl(s.fileUrl) : "";
+      const graded = s.score !== null && s.score !== undefined;
+
+      ul.insertAdjacentHTML(
+        "beforeend",
+        `
         <li class="list-group-item">
           <div class="fw-semibold">
             ${s.courseName ?? "-"} • ${s.lessonName ?? "-"} • ${s.assignmentTitle ?? "-"}
@@ -68,35 +66,50 @@ document.addEventListener('DOMContentLoaded', function () {
             SV: ${s.studentName ?? ""} (${s.studentEmail ?? "-"}) • Nộp lúc: ${s.submittedAt ?? "-"}
           </div>
 
-          <div class="small-muted">Nội dung: ${(s.content ?? "").slice(0, 120)}</div>
+          <div class="small-muted mt-1">
+            Nội dung: ${(s.content ?? "").trim() ? (s.content ?? "").slice(0, 120) : "<i>(Không có nội dung)</i>"}
+          </div>
 
-          ${s.fileUrl
-            ? `<div class="small-muted">File:
-                <a href="${buildFileUrl(s.fileUrl)}" target="_blank" rel="noopener">Tải file</a>
-              </div>`
-            : ""
+          ${
+            s.fileUrl
+              ? `
+            <div class="small-muted mt-2">
+              File:
+              <a class="btn btn-sm btn-outline-secondary ms-2"
+                href="${fileAbs}" target="_blank" rel="noopener">
+                Xem file
+              </a>
+
+              <a class="btn btn-sm btn-outline-primary ms-2"
+                 href="${fileAbs}" download>
+                Tải file
+              </a>
+            </div>
+          `
+              : `<div class="small-muted mt-2"><i>(Không có file)</i></div>`
           }
 
-          <div class="small-muted">
+          <div class="small-muted mt-2">
             Điểm: ${s.score ?? "-"} ${s.feedback ? `• Nhận xét: ${s.feedback}` : ""}
           </div>
 
-          <button class="btn btn-sm btn-outline-primary mt-2" data-grade="${s.submissionId}">
-            Chấm điểm
-          </button>
+          ${
+            graded
+              ? `<button class="btn btn-sm btn-outline-secondary mt-2" disabled>Đã chấm</button>`
+              : `<button class="btn btn-sm btn-outline-primary mt-2" data-grade="${s.submissionId}">Chấm điểm</button>`
+          }
         </li>
-      `);
+      `
+      );
     });
 
-    bindGradeButtons(); // gắn event sau khi render
+    bindGradeButtons();
   }
 
+  // ====== RENDER (USER) ======
   function renderListUser(data) {
     const ul = document.getElementById("list");
-    if (!ul) {
-      console.error("Không tìm thấy #list trong HTML");
-      return;
-    }
+    if (!ul) return console.error("Không tìm thấy #list");
 
     ul.innerHTML = "";
     if (!data || data.length === 0) {
@@ -104,50 +117,113 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    data.forEach(s => {
-      ul.insertAdjacentHTML("beforeend", `
+    data.forEach((s) => {
+      const fileAbs = s.fileUrl ? buildFileUrl(s.fileUrl) : "";
+      const content = (s.content ?? "").trim();
+
+      // ✅ Ưu tiên title (nếu BE trả về), fallback mới dùng submissionId
+      const title =
+        s.assignmentTitle ||
+        s.assignmentName ||
+        (s.assignmentId ? `Bài tập #${s.assignmentId}` : `Submission #${s.submissionId ?? "-"}`);
+
+      ul.insertAdjacentHTML(
+        "beforeend",
+        `
         <li class="list-group-item">
-          <div class="fw-semibold">Submission #${s.submissionId ?? s.id ?? "-"}</div>
+          <div class="fw-semibold">${title}</div>
 
-          <div class="small-muted">Nội dung: ${(s.content ?? s.link ?? "").slice(0, 120)}</div>
+          <div class="small-muted mt-1">
+            Nội dung: ${content ? content : "<i>(Không có nội dung)</i>"}
+          </div>
 
-          ${s.fileUrl
-            ? `<div class="small-muted">File:
-                <a href="${buildFileUrl(s.fileUrl)}" target="_blank" rel="noopener">Tải file</a>
-              </div>`
-            : ""
+          ${
+            s.fileUrl
+              ? `
+            <div class="small-muted mt-2">
+              File:
+              <a class="btn btn-sm btn-outline-secondary ms-2"
+                 href="${fileAbs}" target="_blank" rel="noopener">
+                Xem file
+              </a>
+
+              <a class="btn btn-sm btn-outline-primary ms-2"
+                 href="${fileAbs}" download>
+                Tải file
+              </a>
+            </div>
+          `
+              : `<div class="small-muted mt-2"><i>(Không có file)</i></div>`
           }
 
-          <div class="small-muted">Điểm: ${s.score ?? "-"}</div>
+          <div class="small-muted mt-2">Điểm: ${s.score ?? "-"}</div>
           ${s.feedback ? `<div class="small-muted">Nhận xét: ${s.feedback}</div>` : ""}
         </li>
-      `);
+      `
+      );
     });
   }
 
+  // ====== GRADE MODAL ======
   function bindGradeButtons() {
-    document.querySelectorAll("[data-grade]").forEach(btn => {
-      btn.onclick = async () => {
-        try {
-          const sid = btn.getAttribute("data-grade");
-          const score = prompt("Nhập điểm:");
-          if (score === null) return;
+    const modalEl = document.getElementById("gradeModal");
+    if (!modalEl) return;
 
-          const feedback = prompt("Nhận xét (có thể bỏ trống):") || "";
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
 
-          await apiFetch(
-            `/submissions/${sid}/grade?score=${encodeURIComponent(score)}&feedback=${encodeURIComponent(feedback)}`,
-            { method: "POST" }
-          );
+    const sidEl = document.getElementById("gradeSubmissionId");
+    const scoreEl = document.getElementById("gradeScore");
+    const feedbackEl = document.getElementById("gradeFeedback");
+    const notifyEl = document.getElementById("notifyStudent");
+    const infoEl = document.getElementById("gradeTargetInfo");
+    const formEl = document.getElementById("gradeForm");
+    const submitBtn = document.getElementById("gradeSubmitBtn");
 
-          toast("Chấm điểm thành công", "success");
-          location.reload();
-        } catch (e) {
-          toast("Chấm điểm thất bại: " + (e.message || e), "danger");
-          console.error(e);
-        }
+    document.querySelectorAll("[data-grade]").forEach((btn) => {
+      btn.onclick = () => {
+        const sid = btn.getAttribute("data-grade");
+        sidEl.value = sid;
+        scoreEl.value = "";
+        feedbackEl.value = "";
+        notifyEl.checked = true;
+        if (infoEl) infoEl.textContent = `Submission ID: ${sid}`;
+        modal.show();
+        setTimeout(() => scoreEl.focus(), 150);
       };
     });
+
+    formEl.onsubmit = async (e) => {
+      e.preventDefault();
+      try {
+        const sid = sidEl.value;
+        const score = (scoreEl.value || "").trim();
+        const feedback = (feedbackEl.value || "").trim();
+        const notify = notifyEl.checked;
+
+        if (!sid) return toast("Thiếu submissionId", "danger");
+        if (score === "") return toast("Vui lòng nhập điểm", "warning");
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Đang lưu...";
+
+        await apiFetch(
+          `/submissions/${sid}/grade?score=${encodeURIComponent(score)}&feedback=${encodeURIComponent(
+            feedback
+          )}&notify=${notify ? "true" : "false"}`,
+          { method: "POST" }
+        );
+
+        toast("Chấm điểm thành công", "success");
+        modal.hide();
+        location.reload();
+      } catch (e2) {
+        toast("Chấm điểm thất bại: " + (e2.message || e2), "danger");
+        console.error(e2);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Lưu điểm";
+      }
+    };
   }
 
   // ====== LOADERS ======
@@ -158,7 +234,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const data = await apiFetch(`/submissions/teacher`);
     renderListTeacher(data);
 
-    // stats
     try {
       const stats = await apiFetch(`/submissions/teacher/stats`);
       const statsEl = document.getElementById("stats");
@@ -166,7 +241,6 @@ document.addEventListener('DOMContentLoaded', function () {
         statsEl.innerText = `Tổng lượt nộp: ${stats.totalSubmissions} • Tổng SV đã nộp: ${stats.totalStudents}`;
       }
     } catch (e) {
-      // bỏ qua nếu chưa có endpoint
       console.warn("Không tải được stats teacher:", e);
     }
   }
@@ -178,12 +252,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const data = await apiFetch(`/submissions/assignments/${aid}`);
     renderListTeacher(data);
 
-    // stats theo assignment nếu có
     try {
-      const stats = await apiFetch(`/submissions/assignment/${aid}/stats`);
+      const stats = await apiFetch(`/submissions/assignments/${aid}/stats`);
       const statsEl = document.getElementById("stats");
       if (statsEl) {
-        statsEl.innerText = `SV đã nộp: ${stats.totalStudentsSubmitted} • Tổng lượt nộp: ${stats.totalSubmissions}`;
+        statsEl.innerText = `SV đã nộp: ${stats.totalStudentsSubmitted ?? stats.totalStudents ?? "-"} • Tổng lượt nộp: ${
+          stats.totalSubmissions ?? "-"
+        }`;
       }
     } catch (e) {
       console.warn("Không tải được stats assignment:", e);
@@ -203,15 +278,18 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
       await ensureMe();
 
+      // nếu có assignmentId -> chỉ teacher xem list theo assignment
       if (assignmentId) {
-        if (!isTeacher()) {
-          toast("Bạn không có quyền xem danh sách bài nộp của bài tập này.", "warning");
+        if (isTeacher()) {
+          await loadTeacherByAssignment(assignmentId);
           return;
         }
-        await loadTeacherByAssignment(assignmentId);
+        toast("Trang này chỉ để xem. Nộp bài ở Chi tiết bài tập.", "info");
+        await loadUserView();
         return;
       }
 
+      // không có assignmentId
       if (isTeacher()) {
         await loadTeacherDashboard();
         return;

@@ -3,28 +3,32 @@
   "use strict";
 
   document.addEventListener("DOMContentLoaded", () => {
+    // ===== DOM =====
     const $ = (id) => document.getElementById(id);
 
-    // ======= ELEMENTS =======
-    const form = $("anonForm");
-    const courseInput = $("anonCourse");
-    const emailInput = $("anonEmail");
-    const noteInput = $("anonNote");
-    const statusEl = $("anonStatus");
-    const clearBtn = $("anonClear");
-    const list = $("anonList");
-    const empty = $("anonEmpty");
-    const counter = $("anonCounter");
-    const filterKeyword = $("anonFilterKeyword");
-    const filterCourse = $("anonFilterCourse");
+    const el = {
+      form: $("anonForm"),
+      course: $("anonCourse"),
+      email: $("anonEmail"),
+      note: $("anonNote"),
+      status: $("anonStatus"),
+      clear: $("anonClear"),
+      list: $("anonList"),
+      empty: $("anonEmpty"),
+      counter: $("anonCounter"),
+      kw: $("anonFilterKeyword"),
+      courseFilter: $("anonFilterCourse"),
+    };
 
-    // ======= STATE =======
-    let allConnections = [];
-    let currentUserId = 0;
-    let courseOptionsCacheKey = "";
+    // ===== STATE =====
+    const state = {
+      all: [],
+      currentUserId: 0,
+      courseOptionsKey: "",
+    };
 
-    // ======= HELPERS =======
-    const setStatus = (msg = "") => { if (statusEl) statusEl.textContent = msg; };
+    // ===== HELPERS =====
+    const setStatus = (msg = "") => el.status && (el.status.textContent = msg);
 
     const escapeHtml = (str = "") =>
       String(str)
@@ -34,13 +38,10 @@
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
 
-    const fmtDateTime = (v) =>
-      v ? new Date(v).toLocaleString("vi-VN", { hour12: false }) : "-";
+    const fmtDateTime = (v) => (v ? new Date(v).toLocaleString("vi-VN", { hour12: false }) : "-");
+    const fmtDate = (v) => (v ? new Date(v).toLocaleDateString("vi-VN") : "-");
 
-    const fmtDate = (v) =>
-      v ? new Date(v).toLocaleDateString("vi-VN") : "-";
-
-    const makeMailto = (email, courseName) => {
+    function makeMailto(email, courseName) {
       const subject = `Học chung ${courseName || ""}`.trim();
       const body =
         `Chào bạn,\n` +
@@ -54,18 +55,18 @@
         `?subject=${encodeURIComponent(subject)}` +
         `&body=${encodeURIComponent(body)}`
       );
-    };
+    }
 
-    // ✅ lấy userId theo thứ tự: userId -> userInfo.id -> /auth/me
     async function ensureCurrentUserId() {
       const direct = Number(localStorage.getItem("userId") || 0);
       if (direct) return direct;
 
+      // userInfo cache
       try {
         const raw = localStorage.getItem("userInfo");
         if (raw) {
           const ui = JSON.parse(raw);
-          const id = Number(ui?.id || ui?.userId || 0);
+          const id = Number(ui?.userId || ui?.id || 0);
           if (id) {
             localStorage.setItem("userId", String(id));
             return id;
@@ -73,6 +74,7 @@
         }
       } catch {}
 
+      // fallback API
       try {
         const me = await apiFetch("/auth/me");
         const id = Number(me?.userId ?? me?.id ?? 0);
@@ -83,64 +85,63 @@
       }
     }
 
-    // ======= LOAD COURSES -> left dropdown =======
+    // ===== LOAD COURSES (left dropdown) =====
     async function loadCourses() {
-      if (!courseInput) return;
+      if (!el.course) return;
       try {
         const courses = await apiFetch("/courses");
-        const options = (courses || [])
+        const list = Array.isArray(courses) ? courses : [];
+
+        const options = list
           .map((c) => {
             const id = c.courseId ?? c.id ?? c.course_id;
-            const name = c.name ?? c.courseName ?? c.ten ?? "";
+            const name = c.courseName ?? c.name ?? c.ten ?? "";
             if (!id || !name) return "";
             return `<option value="${escapeHtml(id)}">${escapeHtml(name)}</option>`;
           })
           .filter(Boolean)
           .join("");
 
-        courseInput.innerHTML = `<option value="">Chọn khóa học</option>` + options;
+        el.course.innerHTML = `<option value="">Chọn khóa học</option>${options}`;
       } catch (e) {
-        courseInput.innerHTML = `<option value="">Không tải được khóa học</option>`;
+        el.course.innerHTML = `<option value="">Không tải được khóa học</option>`;
         console.error(e);
       }
     }
 
-    // ======= LOAD CONNECTIONS =======
+    // ===== LOAD CONNECTIONS =====
     async function loadConnections() {
       try {
         const data = await apiFetch("/connections");
-        allConnections = Array.isArray(data) ? data : [];
+        state.all = Array.isArray(data) ? data : [];
       } catch (e) {
-        allConnections = [];
+        state.all = [];
         setStatus("Không tải được danh sách: " + (e?.message || e));
         console.error(e);
       }
     }
 
-    // ======= FILTERS =======
-    function buildCourseFilterFromConnections(data) {
-      if (!filterCourse) return;
+    // ===== FILTERS =====
+    function rebuildCourseFilter(data) {
+      if (!el.courseFilter) return;
 
-      const options = [
-        ...new Set((data || []).map((i) => (i.courseName || "").trim()).filter(Boolean)),
-      ];
+      const options = [...new Set((data || []).map((i) => (i.courseName || "").trim()).filter(Boolean))];
+      const key = options.slice().sort().join("|");
 
-      const newKey = options.slice().sort().join("|");
-      if (newKey === courseOptionsCacheKey) return;
-      courseOptionsCacheKey = newKey;
+      if (key === state.courseOptionsKey) return;
+      state.courseOptionsKey = key;
 
-      const current = filterCourse.value;
-
-      filterCourse.innerHTML =
+      const current = el.courseFilter.value;
+      el.courseFilter.innerHTML =
         `<option value="">Tất cả khóa học</option>` +
         options.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
 
-      filterCourse.value = options.includes(current) ? current : "";
+      el.courseFilter.value = options.includes(current) ? current : "";
     }
 
     function applyFilters(data) {
-      const kw = (filterKeyword?.value || "").trim().toLowerCase();
-      const course = filterCourse?.value || "";
+      const kw = (el.kw?.value || "").trim().toLowerCase();
+      const course = el.courseFilter?.value || "";
 
       return (data || []).filter((item) => {
         const hay = `${item.contactEmail || ""} ${item.note || ""}`.toLowerCase();
@@ -150,87 +151,89 @@
       });
     }
 
-    // ======= RENDER =======
+    // ===== RENDER =====
     function render() {
-      buildCourseFilterFromConnections(allConnections);
-      const filtered = applyFilters(allConnections);
+      rebuildCourseFilter(state.all);
 
-      if (counter) {
-        counter.textContent = allConnections.length
-          ? `${filtered.length}/${allConnections.length} nhu cầu`
-          : "";
+      const filtered = applyFilters(state.all);
+
+      if (el.counter) {
+        el.counter.textContent = state.all.length ? `${filtered.length}/${state.all.length} nhu cầu` : "";
       }
 
       if (!filtered.length) {
-        if (empty) empty.style.display = "block";
-        if (list) list.innerHTML = "";
+        if (el.empty) el.empty.style.display = "block";
+        if (el.list) el.list.innerHTML = "";
         return;
       }
-      if (empty) empty.style.display = "none";
+      if (el.empty) el.empty.style.display = "none";
 
-      const html = filtered.map((item) => {
-        const courseName = item.courseName || "";
-        const email = item.contactEmail || "";
-        const note = item.note || "";
+      const html = filtered
+        .map((item) => {
+          const courseName = item.courseName || "";
+          const email = item.contactEmail || "";
+          const note = item.note || "";
 
-        const mailto = makeMailto(email, courseName);
-        const createdAtText = fmtDateTime(item.createdAt);
-        const expiresAtText = fmtDate(item.expiresAt);
+          const createdAtText = fmtDateTime(item.createdAt);
+          const expiresAtText = fmtDate(item.expiresAt);
 
-        const isOwner = Number(item.ownerId || 0) === Number(currentUserId || 0);
+          const isOwner = Number(item.ownerId || 0) === Number(state.currentUserId || 0);
 
-        return `
-          <div class="list-group-item py-3" data-id="${escapeHtml(item.id)}">
-            <div class="d-flex justify-content-between align-items-center gap-2">
-              <div>
-                <span class="course-chip">${escapeHtml(courseName)}</span>
-                <div class="text-muted small mt-1">
-                  Tạo: ${escapeHtml(createdAtText)} • Hết hạn: ${escapeHtml(expiresAtText)}
+          return `
+            <div class="list-group-item py-3" data-id="${escapeHtml(item.id)}">
+              <div class="d-flex justify-content-between align-items-center gap-2">
+                <div>
+                  <span class="course-chip">${escapeHtml(courseName)}</span>
+                  <div class="text-muted small mt-1">
+                    Tạo: ${escapeHtml(createdAtText)} • Hết hạn: ${escapeHtml(expiresAtText)}
+                  </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                  <a class="btn btn-sm btn-outline-primary" href="${makeMailto(email, courseName)}">Liên hệ</a>
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-copy="${escapeHtml(email)}">
+                    Copy email
+                  </button>
                 </div>
               </div>
 
-              <div class="d-flex gap-2">
-                <a class="btn btn-sm btn-outline-primary" href="${mailto}">Liên hệ</a>
-                <button class="btn btn-sm btn-outline-secondary" type="button" data-copy="${escapeHtml(email)}">
-                  Copy email
-                </button>
+              <div class="mt-2 fw-semibold">${escapeHtml(email)}</div>
+              <div class="mt-1 text-muted small">${escapeHtml(note || "Không có ghi chú")}</div>
+
+              <div class="text-muted small mt-2">
+                Bấm <b>Liên hệ</b> sẽ mở app Email mặc định. Nếu không mở, bấm <b>Copy email</b> để liên hệ thủ công.
               </div>
+
+              ${
+                isOwner
+                  ? `<button class="btn btn-sm btn-link text-danger px-0 mt-2" data-delete="${escapeHtml(item.id)}">Xóa</button>`
+                  : ""
+              }
             </div>
+          `;
+        })
+        .join("");
 
-            <div class="mt-2 fw-semibold">${escapeHtml(email)}</div>
-            <div class="mt-1 text-muted small">${escapeHtml(note || "Không có ghi chú")}</div>
-
-            <div class="text-muted small mt-2">
-              Bấm <b>Liên hệ</b> sẽ mở app Email mặc định. Nếu không mở, bấm <b>Copy email</b> để liên hệ thủ công.
-            </div>
-
-            ${isOwner ? `<button class="btn btn-sm btn-link text-danger px-0 mt-2" data-delete="${escapeHtml(item.id)}">Xóa</button>` : ""}
-          </div>
-        `;
-      }).join("");
-
-      if (list) list.innerHTML = html;
+      if (el.list) el.list.innerHTML = html;
     }
 
-    // ======= CREATE =======
-    form?.addEventListener("submit", async (e) => {
+    // ===== CREATE =====
+    el.form?.addEventListener("submit", async (e) => {
       e.preventDefault();
-      if (!form.checkValidity()) return form.reportValidity();
+      if (!el.form.checkValidity()) return el.form.reportValidity();
 
-      const courseId = Number(courseInput?.value || 0);
+      const courseId = Number(el.course?.value || 0);
       if (!courseId) return setStatus("Bạn chưa chọn khóa học");
 
       const payload = {
         courseId,
-        contactEmail: (emailInput?.value || "").trim(),
-        note: (noteInput?.value || "").trim(),
+        contactEmail: (el.email?.value || "").trim(),
+        note: (el.note?.value || "").trim(),
       };
 
       try {
-        // ✅ nếu apiFetch của bạn hỗ trợ json, dùng cách này gọn hơn:
         await apiFetch("/connections", { method: "POST", json: payload });
-
-        form.reset();
+        el.form.reset();
         setStatus("Đã gửi nhu cầu ghép nhóm.");
         await loadConnections();
         render();
@@ -240,8 +243,8 @@
       }
     });
 
-    // ======= LIST CLICK (copy / delete) =======
-    list?.addEventListener("click", async (e) => {
+    // ===== LIST CLICK (copy / delete) =====
+    el.list?.addEventListener("click", async (e) => {
       const copyBtn = e.target.closest("button[data-copy]");
       if (copyBtn) {
         const email = copyBtn.getAttribute("data-copy") || "";
@@ -272,16 +275,16 @@
       }
     });
 
-    clearBtn?.addEventListener("click", () => {
+    el.clear?.addEventListener("click", () => {
       setStatus("Backend version: không có 'xóa tất cả' (vì phải đảm bảo quyền owner).");
     });
 
-    filterKeyword?.addEventListener("input", render);
-    filterCourse?.addEventListener("change", render);
+    el.kw?.addEventListener("input", render);
+    el.courseFilter?.addEventListener("change", render);
 
-    // ======= INIT =======
-    (async function init() {
-      currentUserId = await ensureCurrentUserId();
+    // ===== INIT =====
+    (async () => {
+      state.currentUserId = await ensureCurrentUserId();
       await loadCourses();
       await loadConnections();
       render();

@@ -98,6 +98,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         res.setEnrollmentId(e.getId());
         res.setStudentId(e.getStudent().getUserId());
         res.setStudentName(e.getStudent().getFirstName());
+        res.setStudentEmail(e.getStudent().getEmail());
         res.setCourseId(e.getCourse().getCourseId());
         res.setCourseName(e.getCourse().getName());
         res.setRegisteredAt(e.getRegistrationDate().toString());

@@ -13,5 +13,4 @@ public class AssignmentReqest {
     private String description;
     private LocalDateTime deadline;
     private Integer maxScore;
-
 }

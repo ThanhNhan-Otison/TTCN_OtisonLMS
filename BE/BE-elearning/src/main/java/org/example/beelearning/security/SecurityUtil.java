@@ -7,7 +7,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class SecurityUtil {
 
     private SecurityUtil() {
-        // utility class, không cho new
     }
 
     public static User getCurrentUser() {

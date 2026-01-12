@@ -1,12 +1,7 @@
 package org.example.beelearning.service.impl;
 
-import org.example.beelearning.dto.course.CourseStatsCardResponse;
-import org.example.beelearning.dto.course.CourseStudentStatsRequest;
-import org.example.beelearning.dto.course.CourseStudentStatsResponse;
-import org.example.beelearning.dto.course.TeacherCourseStatsResponse;
-import org.example.beelearning.entity.Course;
-import org.example.beelearning.entity.Enrollment;
-import org.example.beelearning.entity.User;
+import org.example.beelearning.dto.course.*;
+import org.example.beelearning.entity.*;
 import org.example.beelearning.exception.BusinessException;
 import org.example.beelearning.repository.AssignmentRepository;
 import org.example.beelearning.repository.CourseRepository;
@@ -16,7 +11,11 @@ import org.example.beelearning.security.SecurityUtil;
 import org.example.beelearning.service.StatsService;
 import org.springframework.stereotype.Service;
 
+import java.util.*;
+
+
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class StatsServiceImpl implements StatsService {
@@ -36,18 +35,14 @@ public class StatsServiceImpl implements StatsService {
         this.submissionRepository = submissionRepository;
     }
 
-    // ===================== USER / STUDENT =====================
     @Override
     public CourseStudentStatsResponse getMyCourseStats(Integer courseId, CourseStudentStatsRequest request) {
 
         Integer userId = SecurityUtil.getCurrentUser().getUserId();
-
-        // check đã đăng ký chưa
         boolean enrolled = enrollmentRepository.existsByStudent_UserIdAndCourse_CourseId(userId, courseId);
         if (!enrolled) {
             throw new BusinessException("Bạn chưa đăng ký khóa học này");
         }
-
         long totalAssignments = assignmentRepository.countAssignmentsInCourse(courseId);
         long submittedAssignments = submissionRepository.countDistinctAssignmentsSubmittedInCourse(courseId, userId);
         long pendingAssignments = Math.max(0, totalAssignments - submittedAssignments);
@@ -64,108 +59,6 @@ public class StatsServiceImpl implements StatsService {
         );
     }
 
-    // ===================== TEACHER / ADMIN =====================
-//    @Override
-//    public TeacherCourseStatsResponse getTeacherCourseStats(Integer courseId, User requester) {
-//
-//        Course course = courseRepository.findById(courseId)
-//                .orElseThrow(() -> new BusinessException("Không tìm thấy khóa học"));
-//
-//        // ✅ check quyền: TEACHER chỉ được xem course của mình, ADMIN bỏ qua
-//        String role = String.valueOf(requester.getRole()).toUpperCase();
-//        boolean isAdmin = role.contains("ADMIN");
-//        boolean isTeacher = role.contains("TEACHER");
-//
-//        if (isTeacher && !isAdmin) {
-//            // ⚠️ đoạn này phụ thuộc Course entity của bạn
-//            // Nếu Course có field teacher kiểu User -> course.getTeacher().getUserId()
-//            Integer ownerTeacherId = (course.getTeacher() != null) ? course.getTeacher().getUserId() : null;
-//
-//            if (ownerTeacherId == null || !ownerTeacherId.equals(requester.getUserId())) {
-//                throw new BusinessException("Bạn không quản lý khóa học này");
-//            }
-//        }
-//
-//        long totalStudents = enrollmentRepository.countStudentsInCourse(courseId);
-//        long totalAssignments = assignmentRepository.countAssignmentsInCourse(courseId);
-//        long totalSubmissions = submissionRepository.countSubmissionsInCourse(courseId);
-//        long submittedStudents = submissionRepository.countDistinctStudentsSubmittedInCourse(courseId);
-//
-//        Double avgScore = submissionRepository.avgScoreInCourse(courseId); // có thể null
-//        Double rate = null;
-//        if (totalStudents > 0) {
-//            rate = (submittedStudents * 100.0) / totalStudents;
-//        }
-//
-//        return new TeacherCourseStatsResponse(
-//                totalStudents,
-//                submittedStudents,
-//                totalAssignments,
-//                totalSubmissions,
-//                avgScore,
-//                rate
-//        );
-//    }
-
-//    private final CourseRepository courseRepository;
-//    private final EnrollmentRepository enrollmentRepository;
-//    private final AssignmentRepository assignmentRepository;
-//    private final SubmissionRepository submissionRepository;
-
-//    public StatsServiceImpl(
-//            CourseRepository courseRepository,
-//            EnrollmentRepository enrollmentRepository,
-//            AssignmentRepository assignmentRepository,
-//            SubmissionRepository submissionRepository) {
-//        this.courseRepository = courseRepository;
-//        this.enrollmentRepository = enrollmentRepository;
-//        this.assignmentRepository = assignmentRepository;
-//        this.submissionRepository = submissionRepository;
-//    }
-
-    // =====================================================
-    // USER – SINGLE COURSE (GIỮ NGUYÊN CODE CỦA BẠN)
-    // =====================================================
-//    @Override
-//    public CourseStudentStatsResponse getMyCourseStats(
-//            Integer courseId,
-//            CourseStudentStatsRequest request) {
-//
-//        Integer userId = SecurityUtil.getCurrentUser().getUserId();
-//
-//        boolean enrolled = enrollmentRepository
-//                .existsByStudent_UserIdAndCourse_CourseId(userId, courseId);
-//
-//        if (!enrolled) {
-//            throw new BusinessException("Bạn chưa đăng ký khóa học này");
-//        }
-//
-//        long totalAssignments =
-//                assignmentRepository.countAssignmentsInCourse(courseId);
-//
-//        long submittedAssignments =
-//                submissionRepository
-//                        .countDistinctAssignmentsSubmittedInCourse(courseId, userId);
-//
-//        long pendingAssignments =
-//                Math.max(0, totalAssignments - submittedAssignments);
-//
-//        String courseStatus =
-//                (totalAssignments > 0 && submittedAssignments >= totalAssignments)
-//                        ? "COMPLETED"
-//                        : "ONGOING";
-//
-//        return new CourseStudentStatsResponse(
-//                totalAssignments,
-//                submittedAssignments,
-//                pendingAssignments,
-//                courseStatus
-//        );
-//    }
-
-    // =====================================================
-    // TEACHER / ADMIN – SINGLE COURSE (GIỮ NGUYÊN)
-    // =====================================================
     @Override
     public TeacherCourseStatsResponse getTeacherCourseStats(
             Integer courseId,
@@ -173,11 +66,9 @@ public class StatsServiceImpl implements StatsService {
 
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy khóa học"));
-
         String role = requester.getRole().name();
         boolean isAdmin = role.contains("ADMIN");
         boolean isTeacher = role.contains("TEACHER");
-
         if (isTeacher && !isAdmin) {
             Integer ownerTeacherId =
                     course.getTeacher() != null
@@ -188,22 +79,11 @@ public class StatsServiceImpl implements StatsService {
                 throw new BusinessException("Bạn không quản lý khóa học này");
             }
         }
-
-        long totalStudents =
-                enrollmentRepository.countStudentsInCourse(courseId);
-
-        long totalAssignments =
-                assignmentRepository.countAssignmentsInCourse(courseId);
-
-        long totalSubmissions =
-                submissionRepository.countSubmissionsInCourse(courseId);
-
-        long submittedStudents =
-                submissionRepository.countDistinctStudentsSubmittedInCourse(courseId);
-
-        Double avgScore =
-                submissionRepository.avgScoreInCourse(courseId);
-
+        long totalStudents = enrollmentRepository.countStudentsInCourse(courseId);
+        long totalAssignments = assignmentRepository.countAssignmentsInCourse(courseId);
+        long totalSubmissions = submissionRepository.countSubmissionsInCourse(courseId);
+        long submittedStudents = submissionRepository.countDistinctStudentsSubmittedInCourse(courseId);
+        Double avgScore = submissionRepository.avgScoreInCourse(courseId);
         Double rate =
                 totalStudents > 0
                         ? (submittedStudents * 100.0) / totalStudents
@@ -218,10 +98,6 @@ public class StatsServiceImpl implements StatsService {
                 rate
         );
     }
-
-    // =====================================================
-    // USER – ALL COURSES (NEW)
-    // =====================================================
     @Override
     public List<CourseStatsCardResponse> getStatsForMyCourses() {
 
@@ -265,9 +141,7 @@ public class StatsServiceImpl implements StatsService {
                 .toList();
     }
 
-    // =====================================================
-    // TEACHER – ALL COURSES (NEW)
-    // =====================================================
+
     @Override
     public List<CourseStatsCardResponse> getStatsForTeacherCourses() {
 
@@ -281,9 +155,6 @@ public class StatsServiceImpl implements StatsService {
                 .toList();
     }
 
-    // =====================================================
-    // ADMIN – ALL COURSES (NEW)
-    // =====================================================
     @Override
     public List<CourseStatsCardResponse> getStatsForAllCourses() {
 
@@ -291,29 +162,75 @@ public class StatsServiceImpl implements StatsService {
                 .map(course -> buildTeacherCard(course))
                 .toList();
     }
+    @Override
+    public CourseStudentDetailResponse getMyCourseDetail(Integer courseId) {
+        Integer userId = SecurityUtil.getCurrentUser().getUserId();
+        boolean enrolled = enrollmentRepository
+                .existsByStudent_UserIdAndCourse_CourseId(userId, courseId);
+        if (!enrolled) {
+            throw new BusinessException("Bạn chưa đăng ký khóa học này");
+        }
+        List<Assignment> assignments = assignmentRepository.findAssignmentsByCourseId(courseId);
+        List<Submission> mySubs = submissionRepository.findMySubmissionsInCourse(courseId, userId);
+        Map<Integer, Submission> subByAid = mySubs.stream()
+                .collect(Collectors.toMap(
+                        s -> s.getAssignmentId().getAssignmentId(),
+                        s -> s,
+                        (a, b) -> {
+                            // ưu tiên submission có submittedAt mới hơn (null-safe)
+                            if (a.getSubmittedAt() == null) return b;
+                            if (b.getSubmittedAt() == null) return a;
+                            return a.getSubmittedAt().isAfter(b.getSubmittedAt()) ? a : b;
+                        }
+                ));
 
-    // =====================================================
-    // COMMON BUILDER (PRIVATE)
-    // =====================================================
+        List<CourseAssignmentItemResponse> submittedList = new ArrayList<>();
+        List<CourseAssignmentItemResponse> pendingList = new ArrayList<>();
+
+        for (Assignment a : assignments) {
+            Submission s = subByAid.get(a.getAssignmentId());
+
+            CourseAssignmentItemResponse item = CourseAssignmentItemResponse.builder()
+                    .assignmentId(a.getAssignmentId())
+                    .title(a.getTitle())
+                    .deadline(a.getDeadline())
+                    .maxScore(a.getMaxScore())
+                    .submitted(s != null)
+                    .score(s != null ? s.getScore() : null)
+                    .submittedAt(s != null ? s.getSubmittedAt() : null)
+                    .build();
+
+            if (s != null) submittedList.add(item);
+            else pendingList.add(item);
+        }
+
+        long total = assignments.size();
+        long submitted = submittedList.size();
+        long pending = pendingList.size();
+
+        double progress = total == 0 ? 0.0 : (submitted * 100.0 / total);
+        String status = (total > 0 && submitted >= total) ? "COMPLETED" : "ONGOING";
+
+        return CourseStudentDetailResponse.builder()
+                .totalAssignments(total)
+                .submittedAssignments(submitted)
+                .pendingAssignments(pending)
+                .progressPercent(progress)
+                .courseStatus(status)
+                .submittedList(submittedList)
+                .pendingList(pendingList)
+                .build();
+    }
+
+
     private CourseStatsCardResponse buildTeacherCard(Course course) {
 
         Integer courseId = course.getCourseId();
-
-        long totalStudents =
-                enrollmentRepository.countStudentsInCourse(courseId);
-
-        long totalAssignments =
-                assignmentRepository.countAssignmentsInCourse(courseId);
-
-        long totalSubmissions =
-                submissionRepository.countSubmissionsInCourse(courseId);
-
-        long submittedStudents =
-                submissionRepository.countDistinctStudentsSubmittedInCourse(courseId);
-
-        Double avgScore =
-                submissionRepository.avgScoreInCourse(courseId);
-
+        long totalStudents = enrollmentRepository.countStudentsInCourse(courseId);
+        long totalAssignments = assignmentRepository.countAssignmentsInCourse(courseId);
+        long totalSubmissions = submissionRepository.countSubmissionsInCourse(courseId);
+        long submittedStudents = submissionRepository.countDistinctStudentsSubmittedInCourse(courseId);
+        Double avgScore = submissionRepository.avgScoreInCourse(courseId);
         Double rate =
                 totalStudents > 0
                         ? (submittedStudents * 100.0) / totalStudents

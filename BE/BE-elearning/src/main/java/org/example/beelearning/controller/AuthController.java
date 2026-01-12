@@ -22,7 +22,6 @@ public class AuthController {
 
     private final UserService userService;
 
-
     @PostMapping("/register")
     public Boolean addUser(@RequestBody RegisterRequest user){
         return userService.addUser(user);
@@ -31,7 +30,6 @@ public class AuthController {
     @PostMapping("/login")
     public AuthResponse login(@RequestBody LoginRequest user){
         return userService.login(user);
-
     }
     @GetMapping("/user")
     public List<User> getUser(){
@@ -58,20 +56,18 @@ public class AuthController {
                 u.getFirstName(),
                 u.getRole(),
                 u.isStatus(),
-                u.getNgaySinh(),      // ✅ đúng vị trí LocalDate
-                u.getSoDienThoai(),   // ✅ đúng
+                u.getNgaySinh(),
+                u.getSoDienThoai(),
                 u.getGioiTinh()
         );
     }
-    // ✅ UPDATE PROFILE (sửa fullName + email + info)
+
     @PutMapping("/me")
     public UserMeResponse updateMe(@RequestBody UpdateMeRequest req,
                                    Authentication authentication) {
         CustomUserDetails cud = (CustomUserDetails) authentication.getPrincipal();
         User current = cud.getUser();
-
         User saved = userService.updateMe(current.getUserId(), req);
-
         return new UserMeResponse(
                 saved.getUserId(),
                 saved.getEmail(),
@@ -84,7 +80,7 @@ public class AuthController {
         );
     }
 
-    // ✅ CHANGE PASSWORD
+
     @PutMapping("/change-password")
     public String changePassword(@RequestBody ChangePasswordRequest req,
                                  Authentication authentication) {

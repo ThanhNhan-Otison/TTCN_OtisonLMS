@@ -8,18 +8,13 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CourseStatsCardResponse {
-
     private Integer courseId;
     private String courseName;
     private String description;
-
-    // ===== USER =====
     private Long totalAssignments;
     private Long submittedAssignments;
     private Long pendingAssignments;
-    private String courseStatus; // ONGOING | COMPLETED
-
-    // ===== TEACHER / ADMIN =====
+    private String courseStatus;
     private Long totalStudents;
     private Long submittedStudents;
     private Long totalSubmissions;

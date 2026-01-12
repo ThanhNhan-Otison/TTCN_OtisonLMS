@@ -428,7 +428,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  /* ================== INIT ================== */
   try {
     await loadCourses();
   } catch {

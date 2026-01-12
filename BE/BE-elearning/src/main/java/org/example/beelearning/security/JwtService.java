@@ -14,11 +14,11 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    // 🔐 Secret tối thiểu 32 ký tự
+
     private static final String SECRET =
             "CHANGE_ME_TO_A_LONG_RANDOM_SECRET_KEY_32+";
 
-    private static final long EXP_MS = 7L * 24 * 60 * 60 * 1000; // 7 ngày
+    private static final long EXP_MS = 7L * 24 * 60 * 60 * 1000;
 
     private final SecretKey key =
             Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));

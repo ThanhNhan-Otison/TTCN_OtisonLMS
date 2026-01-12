@@ -11,9 +11,7 @@ public class RegisterRequest {
     private String email;
     private String password;
     private Role role;
-
-    private LocalDate ngaySinh;     // yyyy-MM-dd
+    private LocalDate ngaySinh;
     private String soDienThoai;
     private Boolean gioiTinh;
-
 }

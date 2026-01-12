@@ -15,11 +15,7 @@
   <div class="page-wrapper">
     <div id="appNav"></div>
 
-    <div class="main-content" style="
-                  background-image: url('assets/img/bg2.jpg');
-                  background-size: cover;
-                  background-position: center;
-                  background-repeat: no-repeat;">
+    <div class="main-content">
       <div class="container py-4">
         <div class="row g-3 justify-content-center">
           <div class="col-lg-7 col-md-9 col-sm-12">
@@ -31,36 +27,26 @@
                 </div>
                 <span class="ms-auto badge text-bg-info">TEACHER / ADMIN</span>
               </div>
-
               <!-- cảnh báo quyền -->
               <div id="roleWarn" class="alert alert-warning d-none mb-3">
                 Chỉ TEACHER hoặc ADMIN mới được tạo bài học / upload video.
               </div>
-
               <div id="formWrap">
                 <label class="form-label">Khóa học</label>
                 <select id="courseId" class="form-select">
                   <option value="">-- Chọn khóa học --</option>
                 </select>
-
                 <label class="form-label mt-3">Tên bài học</label>
                 <input id="lessonName" class="form-control" placeholder="VD: Bài 1 - Giới thiệu" />
-
                 <label class="form-label mt-3">Nội dung</label>
                 <textarea id="content" class="form-control" rows="4" placeholder="Mô tả bài học..."></textarea>
-
                 <hr class="my-4" />
-
-                <!-- <label class="form-label mt-3"></label> -->
-
-
                 <div class="d-flex flex-wrap gap-2 align-items-center">
                   <div class="me-auto">
                     <div class="fw-semibold">Tài liệu (PDF / DOC / PPT)</div>
                   </div>
                   <input id="fileDoc" type="file" class="form-control" accept=".pdf,.doc,.docx,.ppt,.pptx" />
                   <input type="hidden" id="fileUrl" />
-
                 </div>
                 <br>
                 <div class="d-flex flex-wrap gap-2 align-items-center">
@@ -72,7 +58,6 @@
                 <input id="file" type="file" class="form-control mt-2" accept="video/*" />
                 <label class="form-label mt-3">videoUrl (điền link trực tiếp)</label>
                 <input id="videoUrl" class="form-control" placeholder="/videos/xxx.mp4" />
-
                 <div class="d-grid mt-4">
                   <button id="btnCreateLesson" class="btn btn-primary btn-lg">Tạo bài học</button>
                 </div>
@@ -84,10 +69,8 @@
       </div>
        <br>
     </div>
-   
     <div id="appFooter"></div>
   </div>
-
   <script src="assets/js/api.js"></script>
   <script src="assets/js/auth.js"></script>
   <script src="assets/js/nav.js"></script>
@@ -96,5 +79,4 @@
   <script src="assets/js/footer.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

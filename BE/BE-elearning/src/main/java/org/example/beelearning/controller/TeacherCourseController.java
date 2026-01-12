@@ -17,18 +17,14 @@ import java.util.List;
 @RequestMapping("/api/v1/teacher")
 @RequiredArgsConstructor
 public class TeacherCourseController {
-
     private final CourseRepository courseRepository;
     private final StatsService statsService;
-
-    // TEACHER chỉ xem các course mình dạy
     @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     @GetMapping("/courses")
     public List<Course> myCourses() {
         User me = SecurityUtil.getCurrentUser();
         return courseRepository.findAllByTeacherId(me.getUserId());
     }
-    // ✅ THÊM API NÀY để FE gọi /teacher/courses/{id}/stats
     @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     @GetMapping("/courses/{courseId}/stats")
     public TeacherCourseStatsResponse getCourseStats(@PathVariable Integer courseId) {

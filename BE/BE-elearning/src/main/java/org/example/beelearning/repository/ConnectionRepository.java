@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ConnectionRepository extends JpaRepository<Connection, Long> {
-
-    // lấy danh sách ACTIVE chưa hết hạn
     @Query("""
         select c from Connection c
         where c.status = :status
@@ -22,7 +20,6 @@ public interface ConnectionRepository extends JpaRepository<Connection, Long> {
     """)
     List<Connection> findActiveNotExpired(@Param("status") ConnectSta status,
                                           @Param("now") LocalDateTime now);
-
     @Modifying
     @Transactional
     @Query("""
@@ -35,7 +32,6 @@ public interface ConnectionRepository extends JpaRepository<Connection, Long> {
                     @Param("expired") ConnectSta expired,
                     @Param("now") LocalDateTime now);
 
-    // chỉ xóa nếu đúng owner
     Optional<Connection> findByIdAndOwner_UserId(Long id, Integer ownerId);
 }
 

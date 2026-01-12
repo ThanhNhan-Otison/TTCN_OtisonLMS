@@ -1,48 +1,56 @@
-// lưu JWT
+// =====================
+// AUTH / ME HELPERS
+// =====================
+
+const LS = {
+  token: "token",
+  email: "email",
+  role: "role",
+  userId: "userId",
+  firstName: "firstName",
+  userInfo: "userInfo",
+};
+
 function setJwtToken(token) {
-  localStorage.setItem("token", token);
+  if (token) localStorage.setItem(LS.token, String(token));
 }
 
-// xoá toàn bộ thông tin đăng nhập
 function clearAuth() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("email");
-  localStorage.removeItem("role");
-  localStorage.removeItem("firstName");
-  localStorage.removeItem("userInfo");
+  Object.values(LS).forEach((k) => localStorage.removeItem(k));
 }
 
-// kiểm tra token hợp lệ
 function isValidAuth(val) {
-  if (!val) return false;
+  if (val == null) return false;
   if (typeof val !== "string") return false;
   const v = val.trim();
   return v !== "" && v !== "null" && v !== "undefined";
 }
 
 // ================= ROLE HELPERS =================
+function normalizeRole(role) {
+  return String(role || "")
+    .trim()
+    .toUpperCase()
+    .replace(/^ROLE_/, "");
+}
+
 function getStoredRole() {
-  const r = localStorage.getItem("role");
-  if (!r || r === "null" || r === "undefined") return "";
-  return String(r).toUpperCase();
+  return normalizeRole(localStorage.getItem(LS.role));
 }
 
 function isTeacherOrAdmin() {
   const role = getStoredRole();
   return role === "TEACHER" || role === "ADMIN";
 }
+
 function isUserRole() {
   const role = getStoredRole();
-  return role === "USER";
+  return role === "USER" || role === "STUDENT";
 }
 
-
-
 // ================= AUTH GUARDS =================
-
-// yêu cầu đăng nhập
 function requireAuth(redirectTo = "login.html") {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem(LS.token);
   if (!isValidAuth(token)) {
     clearAuth();
     window.location.href = redirectTo;
@@ -52,14 +60,49 @@ function requireAuth(redirectTo = "login.html") {
 // chỉ cho TEACHER / ADMIN
 async function requireTeacherOrAdmin(redirectTo = "home.html") {
   requireAuth("login.html");
-  if (!getStoredRole()) await tryLoadMe();
+  if (!getStoredRole()) await tryLoadMe(true);
   if (!isTeacherOrAdmin()) window.location.href = redirectTo;
 }
 
 // ================= USER INFO =================
-
-// ===== Load user info (cache) =====
 let __mePromise = null;
+
+function mapUserInfo(me) {
+  const userId = me?.userId ?? me?.id ?? null;
+
+  // ưu tiên fullName, fallback firstName/username/email
+  const fullName =
+    me?.fullName ||
+    me?.firstName ||
+    me?.name ||
+    me?.username ||
+    (me?.email?.includes("@") ? me.email.split("@")[0] : me?.email) ||
+    "";
+
+  const role = normalizeRole(me?.role);
+
+  return {
+    userId,
+    email: me?.email ?? "",
+    fullName,
+    firstName: me?.firstName ?? "",
+    role,
+    status: me?.status ?? "",
+    ngaySinh: me?.ngaySinh ?? null,
+    soDienThoai: me?.soDienThoai ?? "",
+    gioiTinh: me?.gioiTinh ?? "",
+  };
+}
+
+function saveMeToLocalStorage(me) {
+  const info = mapUserInfo(me);
+
+  if (info.userId != null) localStorage.setItem(LS.userId, String(info.userId));
+  if (info.role) localStorage.setItem(LS.role, info.role);
+  if (info.firstName) localStorage.setItem(LS.firstName, info.firstName);
+
+  localStorage.setItem(LS.userInfo, JSON.stringify(info));
+}
 
 async function tryLoadMe(force = false) {
   if (!force && __mePromise) return __mePromise;
@@ -69,41 +112,18 @@ async function tryLoadMe(force = false) {
       const me = await apiFetch("/auth/me");
       if (!me) return null;
 
-      const uid = me.userId ?? me.id;
-      if (uid != null) localStorage.setItem("userId", String(uid));
-
-      const role = me.role ? String(me.role).toUpperCase() : "";
-      if (role) localStorage.setItem("role", role);
-      if (me.firstName) localStorage.setItem("firstName", me.firstName);
-
-      localStorage.setItem(
-        "userInfo",
-        JSON.stringify({
-          id: uid,
-          email: me.email,
-          fullName: me.firstName,
-          role,
-          status: me.status,
-          ngaySinh: me.ngaySinh,
-          soDienThoai: me.soDienThoai,
-          gioiTinh: me.gioiTinh
-        })
-      );
-
+      saveMeToLocalStorage(me);
       return me;
     } catch (e) {
-      // token hết hạn/sai
-      if (String(e.message || "").includes("401")) {
-        clearAuth?.();
-      }
+      // token hết hạn/sai => clear
+      const msg = String(e?.message || "");
+      if (msg.includes("401") || msg.includes("Unauthorized")) clearAuth();
       return null;
     }
   })();
 
   return __mePromise;
 }
-
-
 
 // ================= LOGIN =================
 async function loginJwt(email, password) {
@@ -115,9 +135,9 @@ async function loginJwt(email, password) {
   if (!res?.token) throw new Error("Login không trả token (JWT).");
 
   setJwtToken(res.token);
-  localStorage.setItem("email", email);
+  if (email) localStorage.setItem(LS.email, String(email));
 
   // load user + role
-  await tryLoadMe();
+  await tryLoadMe(true);
   return res;
 }

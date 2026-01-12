@@ -26,22 +26,16 @@ public class LessonServiceImpl implements LessonService {
 
     @Override
     public LessonResponse createLesson(LessonRequest req) {
-
-        // 1. Lấy user hiện tại từ SecurityContext (user đã login)
         var auth = SecurityContextHolder.getContext().getAuthentication();
         var principal = (CustomUserDetails) auth.getPrincipal();
         var currentUser = principal.getUser();
 
-        // 2. Chỉ cho TEACHER hoặc ADMIN được tạo bài học
+
         if (currentUser.getRole() != Role.TEACHER && currentUser.getRole() != Role.ADMIN) {
             throw new BusinessException("Chỉ giảng viên hoặc admin mới được tạo bài học");
         }
-
-        // 3. Kiểm tra khóa học có tồn tại không
         Course course = courseRepository.findById(req.getCourseId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy khóa học"));
-
-        // 4. Tạo Lesson
         Lesson lesson = Lesson.builder()
                 .lessonName(req.getLessonName())
                 .content(req.getContent())
@@ -49,8 +43,6 @@ public class LessonServiceImpl implements LessonService {
                 .fileUrl(req.getFileUrl())
                 .course(course)
                 .build();
-
-        // 5. Lưu và trả về response
         lessonRepository.save(lesson);
         return toResponse(lesson);
     }
@@ -59,18 +51,14 @@ public class LessonServiceImpl implements LessonService {
     public LessonResponse updateLesson(Integer id, LessonRequest req) {
         Lesson lesson = lessonRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy bài học"));
-
         if (req.getLessonName() != null)  lesson.setLessonName(req.getLessonName());
         if (req.getContent() != null) lesson.setContent(req.getContent());
         if (req.getVideoUrl() != null) lesson.setVideoUrl(req.getVideoUrl());
-
-        // Nếu FE cho phép đổi course cho bài học:
         if (req.getCourseId() != null) {
             Course course = courseRepository.findById(req.getCourseId())
                     .orElseThrow(() -> new BusinessException("Không tìm thấy khóa học"));
             lesson.setCourse(course);
         }
-
         lessonRepository.save(lesson);
         return toResponse(lesson);
     }
@@ -88,18 +76,12 @@ public class LessonServiceImpl implements LessonService {
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy bài học"));
         Course course = lesson.getCourse();
-
-        // Lấy user hiện tại
         var auth = SecurityContextHolder.getContext().getAuthentication();
         var principal = (CustomUserDetails) auth.getPrincipal();
         var currentUser = principal.getUser();
-
-        // Nếu là STUDENT thì bắt buộc phải có Enrollment
         if (currentUser.getRole() == Role.USER) {
             boolean enrolled = enrollmentRepository
                     .existsByStudent_UserIdAndCourse_CourseId(currentUser.getUserId(), course.getCourseId());
-            // hoặc existsByUser_UserIDAndCourse_Id(...) nếu field tên user
-
             if (!enrolled) {
                 throw new BusinessException("Bạn chưa đăng ký khóa học này, không được xem bài học");
             }

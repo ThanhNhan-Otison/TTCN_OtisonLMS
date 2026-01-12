@@ -9,7 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class SubmissionStatsResponse {
     private Integer assignmentId;
-    private long totalSubmissions;     // tổng lượt nộp
-    private long totalStudentsSubmitted; // số sinh viên distinct đã nộp
+    private long totalSubmissions;
+    private long totalStudentsSubmitted;
 }
 

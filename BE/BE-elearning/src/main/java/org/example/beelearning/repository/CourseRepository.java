@@ -10,9 +10,7 @@ import java.util.List;
 
 public interface CourseRepository extends JpaRepository<Course, Integer> {
 
-    // Dựa trên tên field trong User là userID
     List<Course> findByTeacher_userId(Integer userID);
-
     List<Course> findByStatus(CourseStatus status);
     @Query("""
         select c from Course c
@@ -28,7 +26,6 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
         where c.courseId = :cid
     """)
     long countSubmissionsInCourse(@Param("cid") Integer courseId);
-
     @Query("""
         select count(distinct s.studentId.userId)
         from Submission s
@@ -44,17 +41,4 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     where e.course.courseId = :cid
 """)
     long countStudentsInCourse(@Param("cid") Integer courseId);
-
-    // TEACHER: lấy các khóa mình dạy
-//    List<Course> findByTeacher_UserId(Integer userId);
-
-    // PUBLIC / ADMIN
-//    List<Course> findByStatus(CourseStatus status);
-
-//    @Query("""
-//        select c
-//        from Course c
-//        where c.teacher.userId = :tid
-//    """)
-//    List<Course> findAllByTeacherId(@Param("tid") Integer teacherId);
 }

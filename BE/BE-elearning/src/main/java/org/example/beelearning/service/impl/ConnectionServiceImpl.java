@@ -51,22 +51,11 @@ public class ConnectionServiceImpl implements ConnectionService {
     }
 
 
-//    @Override
-//    @Transactional(readOnly = true)
-//    public List<ConnectionResponse> getActive() {
-//        // lazy cleanup: mỗi lần load list thì dọn hết hạn
-//        // (hoặc bạn gọi cleanupExpired() bằng scheduler)
-//        connectionRepository.markExpired(LocalDateTime.now());
-//
-//        return connectionRepository.findActiveNotExpired(LocalDateTime.now())
-//                .stream().map(this::toResponse).toList();
-//    }
     @Override
     @Transactional
     public List<ConnectionResponse> getActive() {
         LocalDateTime now = LocalDateTime.now();
 
-        // ✅ dọn hết hạn trước khi trả list
         connectionRepository.markExpired(ConnectSta.ACTIVE, ConnectSta.EXPIRED, now);
 
         return connectionRepository.findActiveNotExpired(ConnectSta.ACTIVE, now)

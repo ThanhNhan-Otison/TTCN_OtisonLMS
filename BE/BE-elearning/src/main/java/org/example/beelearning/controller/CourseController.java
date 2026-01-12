@@ -5,6 +5,7 @@ import org.example.beelearning.dto.assignment.AssignmentReqest;
 import org.example.beelearning.dto.assignment.AssignmentResponse;
 import org.example.beelearning.dto.course.CourseRequest;
 import org.example.beelearning.dto.course.CourseResponse;
+import org.example.beelearning.dto.submission.SubmissionTeacherResponse;
 import org.example.beelearning.repository.CourseRepository;
 import org.example.beelearning.security.CustomUserDetails;
 import org.example.beelearning.service.CourseService;
@@ -22,7 +23,6 @@ public class CourseController {
 
     private final CourseService courseService;
 
-    // TẠO KHÓA HỌC – DÙNG POST
     @PostMapping
     public CourseResponse createCourse(@RequestBody CourseRequest req) {
         return courseService.createCourse(req);
@@ -34,36 +34,28 @@ public class CourseController {
         boolean isAdmin = authentication != null &&
                 authentication.getAuthorities().stream()
                         .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
         if (isAdmin) {
-            return courseService.getAllCourses(); // ADMIN thấy tất cả
+            return courseService.getAllCourses();
         }
-
-        return courseService.getPublishedCourses(); // USER / TEACHER
+        return courseService.getPublishedCourses();
     }
 
-
-
-    // LẤY KHÓA HỌC THEO GIẢNG VIÊN – GET /api/v1/courses/teacher/{teacherId}
     @GetMapping("/teacher/{teacherId}")
     public List<CourseResponse> getByTeacher(@PathVariable Integer teacherId) {
         return courseService.getCoursesByTeacher(teacherId);
     }
 
-    // LẤY CHI TIẾT 1 KHÓA HỌC – GET /api/v1/courses/{id}
     @GetMapping("/{id}")
     public CourseResponse getOne(@PathVariable Integer id) {
         return courseService.getCourse(id);
     }
 
-    // CẬP NHẬT KHÓA HỌC – PUT /api/v1/courses/{id}
     @PutMapping("/{id}")
     public CourseResponse update(@PathVariable Integer id,
                                  @RequestBody CourseRequest req) {
         return courseService.updateCourse(id, req);
     }
 
-    // XÓA KHÓA HỌC – DELETE /api/v1/courses/{id}
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Integer id) {
         courseService.deleteCourse(id);
@@ -83,5 +75,15 @@ public class CourseController {
         return courseService.getEnrolledCourses(userId);
     }
 
+    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
+    @GetMapping("/{courseId}/assignments")
+    public List<AssignmentResponse> assignmentsByCourse(@PathVariable Integer courseId) {
+        return courseService.getAssignmentsByCourse(courseId);
+    }
+    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
+    @GetMapping("/{courseId}/submissions")
+    public List<SubmissionTeacherResponse> submissionsByCourse(@PathVariable Integer courseId) {
+        return courseService.getSubmissionsByCourse(courseId);
+    }
 }
 

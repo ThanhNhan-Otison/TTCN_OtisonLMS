@@ -1,8 +1,8 @@
 package org.example.beelearning.dto.lesson;
 
-import jakarta.persistence.JoinColumn;
+
 import lombok.Data;
-import org.example.beelearning.entity.Course;
+
 
 @Data
 public class LessonResponse {
@@ -13,5 +13,4 @@ public class LessonResponse {
     private Integer courseId;
     private String courseName;
     private String fileUrl;
-
 }

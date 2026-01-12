@@ -16,16 +16,12 @@ public class Enrollment  {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "madk")
     private Integer id;
-
     @Column(name = "ngay_dk",nullable = false)
     private LocalDateTime registrationDate;
-
     @ManyToOne(fetch =FetchType.LAZY )
     @JoinColumn(name = "user_id",nullable = false)
     private User student; //sv dk
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name ="course_id",nullable = false)
-    private Course course; //kh dk
-
+    private Course course;
 }

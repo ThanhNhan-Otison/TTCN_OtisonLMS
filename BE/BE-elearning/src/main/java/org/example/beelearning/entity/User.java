@@ -23,35 +23,25 @@ public class User extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Integer userId;
-
     @Column(name = "ten", length = 100)
     private String firstName;
-
     @Column(name = "email", nullable = false, length = 150)
     private String email;
     @Column(name = "mk", nullable = false)
     private String password;
-
     @Column(name = "trang_thai", nullable = false)
     private boolean status;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "role", length = 20, nullable = false)
     private Role role ;
-
     @Column(name = "reset_token")
     private String resetToken;
-
     @Column(name = "reset_token_expire_at")
     private LocalDateTime resetTokenExpireAt;
-
     @Column(name = "ngay_sinh")
     private LocalDate ngaySinh;
-
     @Column(name = "so_dien_thoai", length = 20)
     private String soDienThoai;
-
     @Column(name = "gioi_tinh")
-    private Boolean gioiTinh; // true = NAM, false = NU
-
+    private Boolean gioiTinh;
 }

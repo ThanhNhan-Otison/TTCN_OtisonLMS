@@ -42,7 +42,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7);
         String email;
-
         try {
             email = jwtService.extractEmail(token);
             System.out.println("[JWT] email from token=" + email);
@@ -52,29 +51,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-//        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-//            var userDetails = customUserDetailsService.loadUserByUsername(email);
-//            System.out.println("[JWT] authorities=" + userDetails.getAuthorities());
-//
-//            var authToken = new UsernamePasswordAuthenticationToken(
-//                    userDetails,
-//                    null,
-//                    userDetails.getAuthorities()
-//            );
-//            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-//            SecurityContextHolder.getContext().setAuthentication(authToken);
-//            System.out.println("[JWT] Authentication set OK");
-//        }
-
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             var userDetails = customUserDetailsService.loadUserByUsername(email);
-
-            // ✅ lấy role từ token
             Claims claims = jwtService.parseClaims(token);
-            String role = claims.get("role", String.class); // "ADMIN" / "TEACHER" / "USER"
-
-            // ✅ ép về chuẩn Spring Security: ROLE_ADMIN...
+            String role = claims.get("role", String.class);
             String authority = (role != null && role.startsWith("ROLE_")) ? role : "ROLE_" + role;
 
             var authToken = new UsernamePasswordAuthenticationToken(
@@ -89,7 +70,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             System.out.println("[JWT] role=" + role + " -> authority=" + authority);
             System.out.println("[JWT] Authentication set OK");
         }
-
         filterChain.doFilter(request, response);
     }
 }

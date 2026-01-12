@@ -1,25 +1,25 @@
 // assets/js/assignments.js
 document.addEventListener("DOMContentLoaded", () => {
-  // ===== DOM =====
+  // ===== DOM helpers =====
   const $ = (id) => document.getElementById(id);
+  const show = (el, yes) => el && el.classList.toggle("d-none", !yes);
+  const setHTML = (el, html) => el && (el.innerHTML = html ?? "");
+  const setText = (el, text) => el && (el.textContent = text ?? "");
 
+  // ===== DOM =====
   const courseInput = $("courseInput");
   const courseDatalist = $("courseDatalist");
   const courseIdHidden = $("courseId");
-
   const btnCreate = $("btnCreateAssignment");
 
-  // course browse
   const courseBrowse = $("courseBrowse");
   const courseBrowseList = $("courseBrowseList");
   const courseBrowseMeta = $("courseBrowseMeta");
 
-  // assignments
   const listEl = $("list");
   const metaEl = $("meta");
   const assignmentPager = $("pager");
 
-  // back button
   const btnBackCourses = $("btnBackCourses");
 
   // ===== STATE =====
@@ -34,22 +34,30 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedCourseId: "",
   };
 
-  // ===== helpers =====
-  const show = (el, yes) => el && el.classList.toggle("d-none", !yes);
-  const setHTML = (el, html) => el && (el.innerHTML = html ?? "");
-  const setText = (el, text) => el && (el.textContent = text ?? "");
+  // ===== small utils =====
+  const normalizeRole = (r = "") => String(r).toUpperCase().replace("ROLE_", "");
+  const getRole = () => normalizeRole(localStorage.getItem("role") || "");
+  const isStudent = () => {
+    const role = getRole();
+    return role === "USER" || role === "STUDENT";
+  };
 
-  function getName(obj, { idKeys, nameKeys, fallbackPrefix }) {
-    const id = idKeys.map(k => obj?.[k]).find(v => v != null) ?? obj?.id ?? "";
-    const name = nameKeys.map(k => obj?.[k]).find(v => v) ?? `${fallbackPrefix} ${id}`;
-    return { id, name };
+  function pickFirst(obj, keys) {
+    for (const k of keys) {
+      const v = obj?.[k];
+      if (v !== undefined && v !== null && v !== "") return v;
+    }
+    return undefined;
   }
 
-  const getCourse = (c) =>
-    getName(c, { idKeys: ["courseId", "id"], nameKeys: ["courseName", "name"], fallbackPrefix: "Course" });
+  function getCourseDisplay(c) {
+    const id = pickFirst(c, ["courseId", "id"]) ?? "";
+    const name = pickFirst(c, ["courseName", "name"]) ?? `Course ${id}`;
+    return { id: String(id), name: String(name) };
+  }
 
-  function setSelectedCourse(id) {
-    state.selectedCourseId = id ? String(id) : "";
+  function setSelectedCourse(courseId) {
+    state.selectedCourseId = courseId ? String(courseId) : "";
     if (courseIdHidden) courseIdHidden.value = state.selectedCourseId;
   }
 
@@ -59,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderAssignments();
   }
 
-  // ===== URL param helpers (giữ courseId khi back) =====
+  // ===== URL param (giữ courseId khi back) =====
   function setCourseParam(courseId) {
     const url = new URL(location.href);
     if (courseId) url.searchParams.set("courseId", String(courseId));
@@ -73,23 +81,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ===== Role: chỉ TEACHER/ADMIN thấy nút tạo =====
   (async () => {
-    try { if (typeof tryLoadMe === "function") await tryLoadMe(); } catch {}
-    const role = String(localStorage.getItem("role") || "").toUpperCase().replace("ROLE_", "");
-    if (btnCreate) btnCreate.style.display = (role === "TEACHER" || role === "ADMIN") ? "" : "none";
+    try {
+      if (typeof tryLoadMe === "function") await tryLoadMe();
+    } catch {}
+    const role = getRole();
+    if (btnCreate) btnCreate.style.display = role === "TEACHER" || role === "ADMIN" ? "" : "none";
   })();
 
   // ===== concurrency helper =====
-  async function mapLimit(arr, limit, mapper) {
-    const ret = [];
+  async function mapLimit(items, limit, mapper) {
+    const arr = Array.isArray(items) ? items : [];
+    if (arr.length === 0) return [];
+    const out = new Array(arr.length);
+
     let i = 0;
     const workers = Array.from({ length: Math.min(limit, arr.length) }, async () => {
       while (i < arr.length) {
         const idx = i++;
-        ret[idx] = await mapper(arr[idx], idx);
+        out[idx] = await mapper(arr[idx], idx);
       }
     });
+
     await Promise.all(workers);
-    return ret;
+    return out;
   }
 
   // ===== check course has any assignments =====
@@ -102,6 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
       for (const l of ls) {
         const lid = l.lessonId ?? l.id;
         if (!lid) continue;
+
         const asg = await apiFetch(`/assignments/lessons/${lid}`);
         if (Array.isArray(asg) && asg.length > 0) return true;
       }
@@ -112,45 +127,36 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ====== FE-only: ẩn nút "Bài nộp" nếu USER đã nộp ======
-  function normalizeRole(r = "") {
-    return String(r).toUpperCase().replace("ROLE_", "");
-  }
-  function isUser() {
-    const role = normalizeRole(localStorage.getItem("role") || "");
-    return role === "USER" || role === "STUDENT";
-  }
+  // ===== FE-only =====
+  let submittedSet = null; 
 
-  let submittedSet = null; // Set<string> assignmentId đã nộp
   async function ensureSubmittedSetLoaded() {
-    if (!isUser()) return null;
+    if (!isStudent()) return null;
     if (submittedSet) return submittedSet;
 
     try {
       const mySubs = await apiFetch(`/submissions/me`);
-      submittedSet = new Set((Array.isArray(mySubs) ? mySubs : []).map(s => String(s.assignmentId)));
+      submittedSet = new Set((Array.isArray(mySubs) ? mySubs : []).map((s) => String(s.assignmentId)));
     } catch (e) {
       console.warn("Không load được /submissions/me để ẩn nút Bài nộp:", e);
-      submittedSet = new Set(); // fallback
+      submittedSet = new Set(); 
     }
     return submittedSet;
   }
 
   async function hideSubmitButtonsInRenderedCards() {
-    if (!isUser()) return;
-    const set = await ensureSubmittedSetLoaded();
-    if (!set || !listEl) return;
+    if (!isStudent() || !listEl) return;
 
-    // chỉ scan trong khu vực list để nhanh
-    listEl.querySelectorAll("a[href*='submissions.html?assignmentId=']").forEach(a => {
+    const set = await ensureSubmittedSetLoaded();
+    if (!set) return;
+
+    listEl.querySelectorAll("a[href*='submissions.html?assignmentId=']").forEach((a) => {
       const href = a.getAttribute("href") || "";
       const m = href.match(/assignmentId=(\d+)/);
       if (!m) return;
 
       const aid = String(m[1]);
-      if (set.has(aid)) {
-        a.style.display = "none"; // ✅ ẩn nút "Bài nộp"
-      }
+      if (set.has(aid)) a.style.display = "none";
     });
   }
 
@@ -159,32 +165,21 @@ document.addEventListener("DOMContentLoaded", () => {
     if (typeof tryLoadMe === "function" && !localStorage.getItem("role")) {
       await tryLoadMe(true);
     }
-
-    const role = String(localStorage.getItem("role") || "")
-      .toUpperCase()
-      .replace("ROLE_", "");
-
-    let endpoint = "/courses"; // admin/all
+    const role = getRole();
+    let endpoint = "/courses"; 
     if (role === "USER") endpoint = "/courses/enrolled";
     else if (role === "TEACHER") endpoint = "/courses/mine";
-
     const data = await apiFetch(endpoint);
     const all = Array.isArray(data) ? data : [];
-
-    // ✅ FILTER: chỉ giữ course có bài tập
     const checks = await mapLimit(all, 4, async (c) => {
       const cid = c.courseId ?? c.id;
       if (!cid) return { ok: false, c };
-      const ok = await courseHasAssignments(cid);
-      return { ok, c };
+      return { ok: await courseHasAssignments(cid), c };
     });
-
-    state.allCourses = checks.filter(x => x.ok).map(x => x.c);
-
-    // datalist
+    state.allCourses = checks.filter((x) => x.ok).map((x) => x.c);
     if (courseDatalist) courseDatalist.innerHTML = "";
     state.allCourses.forEach((c) => {
-      const { id, name } = getCourse(c);
+      const { id, name } = getCourseDisplay(c);
       const opt = document.createElement("option");
       opt.value = name;
       opt.dataset.id = id;
@@ -220,14 +215,14 @@ document.addEventListener("DOMContentLoaded", () => {
     renderAssignments();
   }
 
-  // ===== render courses browse =====
+  // ===== render: course browse =====
   function renderCourseBrowse() {
     const kw = (courseInput?.value || "").trim().toLowerCase();
-    let view = state.allCourses;
 
+    let view = state.allCourses;
     if (kw) {
-      view = state.allCourses.filter(c => {
-        const { id, name } = getCourse(c);
+      view = state.allCourses.filter((c) => {
+        const { id, name } = getCourseDisplay(c);
         return String(id).includes(kw) || String(name).toLowerCase().includes(kw);
       });
     }
@@ -237,20 +232,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const meta = paginate(view, state.coursePage, state.coursePageSize);
     setText(courseBrowseMeta, `Hiển thị ${meta.items.length}/${meta.total} (Trang ${meta.page}/${meta.totalPages})`);
 
-    setHTML(courseBrowseList, meta.items.map((c) => {
-      const { id, name } = getCourse(c);
-      return `
-        <div class="col-md-4">
-          <div class="border rounded-3 p-2 h-100 d-flex align-items-center">
-            <div class="me-auto">
-              <div class="fw-semibold">${name}</div>
-              <div class="small-muted">ID: ${id}</div>
+    if (meta.total === 0) {
+      setHTML(courseBrowseList, `<div class="col-12 small-muted">Không có khóa học nào có bài tập.</div>`);
+      show(courseBrowse, !state.selectedCourseId);
+      return;
+    }
+
+    setHTML(
+      courseBrowseList,
+      meta.items
+        .map((c) => {
+          const { id, name } = getCourseDisplay(c);
+          return `
+            <div class="col-md-4">
+              <div class="border rounded-3 p-2 h-100 d-flex align-items-center">
+                <div class="me-auto">
+                  <div class="fw-semibold">${name}</div>
+                  <div class="small-muted">ID: ${id}</div>
+                </div>
+                <button class="btn btn-outline-primary btn-sm" data-pick-course="${id}">Chọn</button>
+              </div>
             </div>
-            <button class="btn btn-outline-primary btn-sm" data-pick-course="${id}">Chọn</button>
-          </div>
-        </div>
-      `;
-    }).join(""));
+          `;
+        })
+        .join("")
+    );
 
     renderPager("courseBrowsePager", meta, (p) => {
       state.coursePage = p;
@@ -258,28 +264,25 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     show(courseBrowse, !state.selectedCourseId);
-
-    if (meta.total === 0) {
-      setHTML(courseBrowseList, `<div class="col-12 small-muted">Không có khóa học nào có bài tập.</div>`);
-    }
   }
 
-  // ===== assignments render =====
+  // ===== render: assignments =====
   function renderAssignments() {
     const q = ($("q")?.value || "").trim().toLowerCase();
-    const ps = parseInt($("pageSize")?.value || "6", 10);
-
-    const filtered = (state.assignments || []).filter(x => (x.title || "").toLowerCase().includes(q));
-    const meta = paginate(filtered, state.assignmentPage, ps);
-
-    if (metaEl) metaEl.innerText = `Hiển thị ${meta.items.length}/${meta.total} • Trang ${meta.page}/${meta.totalPages}`;
-    if (!listEl) return;
+    const pageSize = parseInt($("pageSize")?.value || "6", 10);
 
     if (!state.selectedCourseId) {
       setHTML(listEl, "");
       if (assignmentPager) assignmentPager.innerHTML = "";
+      if (metaEl) metaEl.textContent = "";
       return;
     }
+
+    const filtered = (state.assignments || []).filter((x) => (x.title || "").toLowerCase().includes(q));
+    const meta = paginate(filtered, state.assignmentPage, pageSize);
+
+    if (metaEl) metaEl.textContent = `Hiển thị ${meta.items.length}/${meta.total} • Trang ${meta.page}/${meta.totalPages}`;
+    if (!listEl) return;
 
     if (meta.total === 0) {
       setHTML(listEl, `<div class="col-12"><div class="alert alert-warning mb-0">Khóa học này chưa có bài tập.</div></div>`);
@@ -287,26 +290,31 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    setHTML(listEl, meta.items.map(a => {
-      const id = a.assignmentId ?? a.id;
-      const title = a.title ?? "Bài tập";
-      const deadline = a.deadline ? new Date(a.deadline).toLocaleString() : "-";
-      const maxScore = (a.maxScore ?? "-");
+    setHTML(
+      listEl,
+      meta.items
+        .map((a) => {
+          const id = a.assignmentId ?? a.id;
+          const title = a.title ?? "Bài tập";
+          const deadline = a.deadline ? new Date(a.deadline).toLocaleString() : "-";
+          const maxScore = a.maxScore ?? "-";
 
-      return `
-        <div class="col-md-4">
-          <div class="card shadow-soft p-3 h-100">
-            <div class="fw-bold">${title}</div>
-            <div class="small-muted">Hạn: ${deadline}</div>
-            <div class="small-muted">Điểm tối đa: ${maxScore}</div>
-            <div class="mt-3 d-flex gap-2">
-              <a class="btn btn-outline-primary btn-sm" href="assignment_detail.html?id=${id}">Chi tiết</a>
-              <a class="btn btn-outline-secondary btn-sm" href="submissions.html?assignmentId=${id}">Bài nộp</a>
+          return `
+            <div class="col-md-4">
+              <div class="card shadow-soft p-3 h-100">
+                <div class="fw-bold">${title}</div>
+                <div class="small-muted">Hạn: ${deadline}</div>
+                <div class="small-muted">Điểm tối đa: ${maxScore}</div>
+                <div class="mt-3 d-flex gap-2">
+                  <a class="btn btn-outline-primary btn-sm" href="assignment_detail.html?id=${id}">Chi tiết</a>
+                  <a class="btn btn-outline-secondary btn-sm" href="submissions.html?assignmentId=${id}">Bài nộp</a>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      `;
-    }).join(""));
+          `;
+        })
+        .join("")
+    );
 
     renderPager("pager", meta, (p) => {
       state.assignmentPage = p;
@@ -322,11 +330,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const val = (courseInput?.value || "").trim();
     if (!val) return "";
 
+    // Cho phép nhập "[123] - ..." hoặc "123 - ..."
     const m = val.match(/^\s*\[?(\d+)\]?\s*[-–]?\s*/);
     if (m) return String(Number(m[1]));
 
-    const match = state.allCourses.find(c => {
-      const name = (c.courseName ?? c.name ?? "").trim();
+    // match theo tên course
+    const match = state.allCourses.find((c) => {
+      const name = String(c.courseName ?? c.name ?? "").trim();
       return name && name.toLowerCase() === val.toLowerCase();
     });
 
@@ -339,17 +349,15 @@ document.addEventListener("DOMContentLoaded", () => {
     setCourseParam(courseId);
 
     btnBackCourses?.classList.remove("d-none"); // ✅ show back
-
-    const found = state.allCourses.find(c => String(c.courseId ?? c.id) === String(courseId));
-    if (courseInput) courseInput.value = found ? getCourse(found).name : String(courseId);
-
     show(courseBrowse, false);
+
+    const found = state.allCourses.find((c) => String(c.courseId ?? c.id) === String(courseId));
+    if (courseInput) courseInput.value = found ? getCourseDisplay(found).name : String(courseId);
 
     // preload set 1 lần (để renderAssignments() gọi hide nhanh)
     await ensureSubmittedSetLoaded();
 
     await loadAssignmentsByCourse(courseId);
-    renderAssignments();
   }
 
   function resetToCourseBrowse() {
@@ -357,10 +365,10 @@ document.addEventListener("DOMContentLoaded", () => {
     setCourseParam("");
 
     btnBackCourses?.classList.add("d-none"); // ✅ hide back
-
     if (courseInput) courseInput.value = "";
     if (courseIdHidden) courseIdHidden.value = "";
 
+    submittedSet = null; // optional: reset cache khi quay lại browse
     clearAssignments();
 
     state.coursePage = 1;

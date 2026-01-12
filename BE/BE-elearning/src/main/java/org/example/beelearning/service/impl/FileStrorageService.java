@@ -31,8 +31,6 @@ public class FileStrorageService {
 
         return "/videos/" + fileName;
     }
-
-    // ✅ THÊM HÀM NÀY
     public String saveSubmissionFile(MultipartFile file) throws IOException {
         String original = file.getOriginalFilename();
         if (original == null || original.isBlank()) {
@@ -40,7 +38,6 @@ public class FileStrorageService {
         }
         String lower = original.toLowerCase();
 
-        // Cho phép các định dạng bài nộp phổ biến (bạn có thể chỉnh)
         if (!(lower.endsWith(".pdf") || lower.endsWith(".doc") || lower.endsWith(".docx")
                 || lower.endsWith(".zip") || lower.endsWith(".rar")
                 || lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg")|| lower.endsWith(".txt"))) {
@@ -54,7 +51,6 @@ public class FileStrorageService {
         Path filePath = Paths.get(submissionPath + fileName);
         Files.write(filePath, file.getBytes());
 
-        // URL để FE truy cập (tí nữa phải map static giống /videos)
         return "/submissions/" + fileName;
     }
 }

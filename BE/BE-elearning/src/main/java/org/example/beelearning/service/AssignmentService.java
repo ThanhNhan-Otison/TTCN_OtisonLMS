@@ -9,9 +9,7 @@ import java.util.List;
 public interface AssignmentService {
     AssignmentResponse  createAssignment(AssignmentReqest req);
     List<AssignmentResponse>  getAssignmentsBylessonId(Integer lessonId);
-
     List<AssignmentResponse> getAllAssignments();
-
     AssignmentResponse getAssignmentById(Integer id);
     AssignmentResponse updateAssignment(Integer assignmentId, AssignmentReqest req);
 }

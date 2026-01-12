@@ -1,13 +1,13 @@
 package org.example.beelearning.dto.assignment;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter @Setter
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class AssignmentResponse {
     private Integer assignmentId;
     private Integer lessonId;

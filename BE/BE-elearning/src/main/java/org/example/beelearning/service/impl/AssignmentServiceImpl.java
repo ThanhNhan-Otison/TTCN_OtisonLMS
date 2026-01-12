@@ -24,15 +24,6 @@ public class AssignmentServiceImpl implements AssignmentService {
 
     @Override
     public AssignmentResponse createAssignment(AssignmentReqest req) {
-//        // Chỉ TEACHER hoặc ADMIN
-//        var auth = SecurityContextHolder.getContext().getAuthentication();
-//        var principal = (CustomUserDetails) auth.getPrincipal();
-//        var currentUser = principal.getUser();
-//
-//        if (currentUser.getRole() != Role.TEACHER && currentUser.getRole() != Role.ADMIN) {
-//            throw new BusinessException("Chỉ giảng viên hoặc admin mới được tạo bài tập");
-//        }
-
         Lesson lesson = lessonRepository.findById(req.getLessonId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy bài học"));
 
@@ -53,8 +44,6 @@ public class AssignmentServiceImpl implements AssignmentService {
         Assignment a = assignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy bài tập"));
 
-        // ✅ KHÔNG đổi lesson khi update (đúng yêu cầu)
-        // Nếu bạn muốn chặn luôn trường hợp FE gửi lessonId khác:
         if (req.getLessonId() != null) {
             Integer currentLessonId = (a.getLessonId() != null) ? a.getLessonId().getLessonId() : null;
             if (currentLessonId != null && !currentLessonId.equals(req.getLessonId())) {
@@ -62,12 +51,10 @@ public class AssignmentServiceImpl implements AssignmentService {
             }
         }
 
-        // ✅ update field được phép
         if (req.getTitle() != null) a.setTitle(req.getTitle());
         if (req.getDescription() != null) a.setDescription(req.getDescription());
         if (req.getDeadline() != null) a.setDeadline(req.getDeadline());
         if (req.getMaxScore() != null) a.setMaxScore(req.getMaxScore());
-
         assignmentRepository.save(a);
         return toResponse(a);
     }

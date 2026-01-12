@@ -12,8 +12,6 @@ import org.springframework.stereotype.Component;
 public class ConnectionCleanupJob {
 
     private final ConnectionService connectionService;
-
-    // chạy 03:00 mỗi ngày
     @Scheduled(cron = "0 0 3 * * *")
     public void cleanup() {
         connectionService.cleanupExpired();

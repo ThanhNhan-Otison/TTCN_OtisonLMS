@@ -14,19 +14,14 @@ public class Course extends BaseEntity{
     @Id @GeneratedValue(strategy= GenerationType.IDENTITY)
     @Column(name="course_id")
     private Integer courseId;
-
     @Column(name = "ten",nullable = false, length = 255)
     private String name;
-
     @Column(name = "mo_ta",columnDefinition = "TEXT")
     private String description;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "trang_thai",length = 20)
     private CourseStatus status;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id",nullable = false)
     private User teacher;
-
 }

@@ -14,15 +14,22 @@ public interface AssignmentRepository extends JpaRepository<Assignment,Integer> 
     List<Assignment> findByLessonId(Lesson assignmentId);
 
     Optional<Object> findByAssignmentId(Integer id);
-
     @Query("""
     select count(a)
     from Assignment a
     join a.lessonId l
     join l.course c
-    where c.courseId = :cid
-""")
+    where c.courseId = :cid""")
     long countAssignmentsInCourse(@Param("cid") Integer courseId);
+    @Query("""
+    select a
+    from Assignment a
+    join a.lessonId l
+    join l.course c
+    where c.courseId = :cid
+    order by a.assignmentId asc""")
+    List<Assignment> findAssignmentsByCourseId(@Param("cid") Integer courseId);
+
 }
 
 

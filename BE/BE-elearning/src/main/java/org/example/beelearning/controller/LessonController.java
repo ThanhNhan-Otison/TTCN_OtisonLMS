@@ -33,18 +33,15 @@ public class LessonController {
         lessonService.deleteLesson(id);
     }
 
-    //lay 1 bai hoc
     @PreAuthorize("hasAnyRole('USER','TEACHER','ADMIN')")
     @GetMapping("/{id}")
     public LessonResponse getLessonById(@PathVariable Integer id) {
         return lessonService.getlessonId(id);
     }
 
-    //lay danh sach bai hoc theo course
     @PreAuthorize("hasAnyRole('USER','TEACHER','ADMIN')")
     @GetMapping("/course/{courseId}")
     public List<LessonResponse> getLessonsByCourseId(@PathVariable Integer courseId) {
         return lessonService.getcourseId(courseId);
     }
-
 }

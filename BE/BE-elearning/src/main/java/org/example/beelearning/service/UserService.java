@@ -7,16 +7,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
 
 public interface UserService {
-    public Boolean addUser( RegisterRequest user);
-
+    Boolean addUser( RegisterRequest user);
     List<User> getUser();
-
+    User updateMe(Integer userId, UpdateMeRequest req);
     AuthResponse login(LoginRequest user);
-
     void forgotPassword(ForgotPasswordRequest request);
-
     void resetPassword(ResetPasswordRequest request);
-//    AuthResponse login(User user, String rawPassword) ;
-User updateMe(Integer userId, UpdateMeRequest req);
     void changePassword(Integer userId, String oldPassword, String newPassword);
 }

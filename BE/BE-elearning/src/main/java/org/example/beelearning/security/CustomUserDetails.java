@@ -12,7 +12,7 @@ import java.util.List;
 
 @Getter
 public class CustomUserDetails implements UserDetails {
-    //user trong db
+
     private final User user;
 
     public CustomUserDetails(User user) {
@@ -25,21 +25,16 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Spring yêu cầu role có dạng ROLE_*
         String roleName = "ROLE_" + user.getRole().name();
-        // ADMIN -> ROLE_ADMIN
         return List.of(new SimpleGrantedAuthority(roleName));
-
     }
-
     @Override
     public @Nullable String getPassword() {
-        return user.getPassword(); // đã được mã hóa BCrypt
+        return user.getPassword();
     }
-
     @Override
     public String getUsername() {
-        return user.getEmail(); // dùng email làm username
+        return user.getEmail();
     }
 
     @Override

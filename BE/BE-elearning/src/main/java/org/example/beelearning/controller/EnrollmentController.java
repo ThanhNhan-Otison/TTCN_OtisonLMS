@@ -22,13 +22,11 @@ public class EnrollmentController {
         return enrollmentService.enrollCourse(req);
     }
 
-    // Xem các khóa 1 sinh viên đã đăng ký
     @GetMapping("/student/{studentId}")
     public List<EnrollmentResponse> getCoursesOfStudent(@PathVariable Integer studentId) {
         return enrollmentService.getCourseofStudent(studentId);
     }
 
-    // Xem danh sách sinh viên của 1 khóa học
     @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
     @GetMapping("/course/{courseId}")
     public List<EnrollmentResponse> getStudentsOfCourse(@PathVariable Integer courseId) {

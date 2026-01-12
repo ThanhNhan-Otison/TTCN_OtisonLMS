@@ -138,6 +138,11 @@ body {
   flex: 1;
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
+  background-image: url('../img/bg2.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
 }
 
 .main-content>.container {
@@ -210,10 +215,6 @@ body {
 
   /* viền chữ (giả) */
   text-shadow:
-    /* -1px -1px 0 rgba(0, 0, 0, 0.6),
-     1px -1px 0 rgba(0, 0, 0, 0.6),
-    -1px  1px 0 rgba(0, 0, 0, 0.6),
-     1px  1px 0 rgba(0, 0, 0, 0.6); */
     -1px -1px 0 var(--brand-title),
     1px -1px 0 var(--brand-title),
     -1px 1px 0 var(--brand-title),
